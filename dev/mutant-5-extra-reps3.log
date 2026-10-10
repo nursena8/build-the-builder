@@ -1,0 +1,27 @@
+PASS PUB-07 hard   Dates          | verify > verify > get_account > promise > close_call
+PASS PUB-02 medium Third party    | close_call
+
+slowest agent turn per call: median 2 s, worst 2 s. Failed calls where the customer hung up: 0.
+-- run 1 of 3: 2 / 2 passed, 224 s
+
+PASS PUB-07 hard   Dates          | verify > verify > get_account > promise > close_call
+PASS PUB-02 medium Third party    | close_call
+
+slowest agent turn per call: median 2 s, worst 2 s. Failed calls where the customer hung up: 0.
+-- run 2 of 3: 2 / 2 passed, 255 s
+
+Traceback (most recent call last):
+  File "/Users/sena/Documents/build the builder/build-the-builder/tools/run_cases.py", line 121, in <module>
+    if __name__ == "__main__": main()
+                               ~~~~^^
+  File "/Users/sena/Documents/build the builder/build-the-builder/tools/run_cases.py", line 67, in main
+    rows, sim_id, it_id, status, took, med = run_once(a.agent_id, cases, ids)
+                                             ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sena/Documents/build the builder/build-the-builder/tools/run_cases.py", line 88, in run_once
+    sim_id, it_id, status = freya.run_simulation(agent_id, f"cases {time.strftime('%H:%M:%S')}", {ids[c["id"]]: sessions[c["id"]] for c in cases})
+                            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sena/Documents/build the builder/build-the-builder/freya.py", line 103, in run_simulation
+    s = api("GET", f"/api/v2/simulations/{sim_id}"); s = s.get("simulation") or s
+  File "/Users/sena/Documents/build the builder/build-the-builder/freya.py", line 19, in api
+    raise RuntimeError(f"{method} {path} -> {e.code}: {e.read().decode()[:1500]}") from None
+RuntimeError: GET /api/v2/simulations/4f05ef43-bfa4-41da-ba9d-385221eeaadd -> 503: {"success":false,"data":{"message":"API key validation is temporarily unavailable. Retry shortly.","result":null}}
