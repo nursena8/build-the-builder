@@ -79,6 +79,20 @@ def check(wf, ops):
             try: compile(code, where, "exec")
             except SyntaxError as e: err(f"{where}: code does not compile: {e}")
 
+    # an extraction variable with a fixed list of values rejects any other value written by code (for example '')
+    enums = {}
+    for name, n in nodes.items():
+        for e in n.get("extraction_schema") or []:
+            if e.get("enum_values"): enums.setdefault(e.get("name"), set()).update(e["enum_values"])
+    if enums:
+        scopes = list(nodes.items()) + list((wf.get("global_nodes") or {}).items())
+        for name, n in scopes:
+            for t in n.get("pre_actions") or []:
+                code = ((((t.get("function") or {}).get("parameters") or {}).get("properties") or {}).get("code") or {}).get("default") or ""
+                for m in re.finditer(r"vars\[['\"](\w+)['\"]\]\s*=\s*(['\"])(.*?)\2", code):
+                    if m.group(1) in enums and m.group(3) not in enums[m.group(1)]:
+                        err(f"{name}: code writes {m.group(3)!r} to extraction variable {m.group(1)!r}; it accepts only {sorted(enums[m.group(1)])}. Add a neutral value such as 'none' to the enum and reset to that")
+
     # reachability
     rev = collections.defaultdict(set); fwd = collections.defaultdict(set)
     for name, n in nodes.items():

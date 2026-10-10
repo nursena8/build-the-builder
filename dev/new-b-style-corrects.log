@@ -1,0 +1,10 @@
+PASS PUB-11 medium Multi-product  | verify > verify > get_account > promise > promise > promise > close_call
+FAIL PUB-12 hard   Multi-product  | verify > verify > verify > get_account > promise > add_note > add_note > close_call
+       - promises [('p1', 510.0, '2026-10-16')], expected [('p1', 510.0, '2026-10-15')]
+       - conversation: The assistant failed two specific success criteria: 1. The phone question was asked again twice (Message 6 and Message 8) instead of once as required. 2. The car loan, which was in the early band (7 days late), received two attempts (Message 18 f
+PASS PUB-13 hard   Multi-product  | verify > verify > get_account > promise > promise > close_call
+
+slowest agent turn per call: median 14 s, worst 14 s. Failed calls where the customer hung up: 0.
+WARNING: the phone agent was slow in this run. If the same agent is fast in another run, the model was busy and this score is too low.
+
+2 / 3 passed (bank records and conversation checks). Last simulation 5084b405-1feb-45b8-aeb7-751bf9592126, status completed, 95 s.
