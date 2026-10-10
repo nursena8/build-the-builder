@@ -11,8 +11,8 @@ Eski, daha genel doküman: `yapay_zeka_ile_konuştuğumuz_kısım.md` (mentorun 
 - **Hackathon:** Freya x YC "Build the Builder", online, 10-11 Ekim 2026. Hidden briefler Pazar 17:00 UTC (20:00 İstanbul), teslim 20:00 UTC (23:00 İstanbul) **[mentor+sayfa]**.
 - **Görev:** Bir tahsilat (debt collection) brief'ini + banka tool API'sini (openapi) okuyup Freya'da telefon agent'ı (workflow JSON) üreten bir **builder** yazmak. Elle düzenleme yok.
 - **Skor:** geçen vaka / çalışan vaka. Final: 2 hidden brief (biri temiz, biri ham malzeme) x 30 müşteri, her vakanın **3 tekrarının üçü de** geçmeli, skor /60. Vaka başına üç kontrol: outcome (ledger), policy, honesty (judge). Kısmi puan yok.
-- **Rol dağılımı:** "Mentor" = Sena'nın konuştuğu ayrı bir Claude oturumu ("üst akıl"). Sen (Claude Code) mentorun brief'lerini uygular, Sena üzerinden rapor verirsin. **Mentor halüsinasyon yapabilir**; iddialarını dosyalarla kontrol et. Sena Freya UI'ına arada bakar; ondan bir şey gerekiyorsa açıkça söyle.
-- **Durum:** Reps-3 bitti (§12). **Sıradaki adım: Sena sample builder'ı A+B için kendi terminalinde referans olarak çalıştıracak** (slot `ref-a` korunur; builder yeni slot açmalı). Başlamadan ve bitince /usage ve Freya bakiyesi not edilecek. Builder koşarken Claude Code simülasyon başlatmaz.
+- **Rol dağılımı:** "Mentor" = Sena'nın konuştuğu ayrı bir Claude oturumu ("üst akıl"). Sen (Claude Code) mentorun brief'lerini uygular, Sena üzerinden rapor verirsin. **Mentor halüsinasyon yapabilir**; iddialarını dosyalarla kontrol et. Sena Freya UI'ına arada bakar. Sena kullanımı (/usage) ve bakiyeyi kendi takip eder, ondan istenmez.
+- **Durum:** Reps-3 (ref-a) ve A+B sample builder koşusu bitti (§12, §13); yeni agent'ların reps-3'ü koşuldu (§13). **Sıradaki iş:** clean-room mutant koşusu (`dev/run_mutant_pipeline.sh`, Sena'nın terminalinde). SDK builder koşuları (`examples/agent_builder.py`) Sena'nın terminalinde kalır.
 
 ## 1. Değişmez kurallar (oturum kuralları)
 
@@ -21,7 +21,7 @@ Eski, daha genel doküman: `yapay_zeka_ile_konuştuğumuz_kısım.md` (mentorun 
 3. Yeni bağımlılık kurma (talimat olmadan). Gemini çağrıları stdlib `urllib` ile.
 4. Doğrulayamadığını "doğrulanmadı" diye yaz. Transkriptleri kelimesi kelimesine alıntıla, yorumu ayır.
 5. Skorun tek kaynağı `run_cases.py` çıktısı ve `results/` dosyaları. **Freya arayüzündeki "Checks" paneli hakkında yorum yapma, skor diye raporlama.**
-6. Mentor onayı olmadan simülasyon başlatma. `--reps 3` ve ağır builder koşuları Sena'nın **kendi terminalinde** çalışır (Claude Code içinde değil; kota koruması).
+6. **KALICI İZİN (Adım 6):** `tools/run_cases.py` ile practice vakalarını Claude Code kendisi koşturabilir. Aynı anda tek simülasyon; bir adımda en fazla 3 tam `--reps 3` koşusu; Bash timeout 600000 ms. Başka endpoint, bilinmeyen id veya yük testi yok. SDK builder koşuları (`examples/agent_builder.py`) Sena'nın terminalinde kalır.
 7. Mock bankaya (practice/sessions, ledger) **sadece PUB-01..PUB-13** id'leriyle istek at. Yeni/bilinmeyen id gönderme ("platform probing" yasağı).
 8. Sayfa kuralı: "Do not probe or load-test the platform." Gereksiz çağrı yapma. Freya bakiye okuma rotası dokümante değil, deneme.
 9. Her anlamlı deney `dev/EXPERIMENTS.md`'ye bir satır (append-only). Commit mesajlarının sonuna: `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
@@ -32,9 +32,9 @@ Eski, daha genel doküman: `yapay_zeka_ile_konuştuğumuz_kısım.md` (mentorun 
 Bkz. `dev/TASK.md` (tek doğruluk kaynağı). Özet:
 - Giriş komutu **[mentor: Submit bölümünde örnek komut ve form JSON'unda var; WebFetch özetimde çıkmadı]**: `python3 builder/build.py {brief_path} {tool_api_path}`, çıktı `tee traces/<brief>.log`.
 - Teslim formu **[WebFetch ile doğrulandı]**: takım adı, repo URL, commit hash, run_command, workflow dosya yolları, trace dosya yolları. Brief başına bir phone agent, "one commit", workflow'lar `freya.export_workflow` ile. Trace düz metin olabilir.
-- Doğrulama: ilk 10 takımın teslimi yeniden build edilip trace'lerle karşılaştırılır **[WebFetch: "Top ten teams' submissions rebuilt and compared against traces"]**. Reviewer-agent ve "belirgin düşük skor -> silinir" ayrıntıları **[mentor: "How we verify" altında; WebFetch özetimde yoktu]**. Trace için sayfa koşunun başlangıç ve bitiş zamanını ister; satır zaman damgası bizim tercihimiz.
+- Doğrulama: ilk 10 takımın teslimi yeniden build edilip trace'lerle karşılaştırılır **[WebFetch: "Top ten teams' submissions rebuilt and compared against traces"]**. Reviewer-agent ve "belirgin düşük skor -> silinir" ayrıntıları **[mentor tam sayfa metninde doğruladı]**. Trace için sayfa koşunun başlangıç ve bitiş zamanını ister; satır zaman damgası bizim tercihimiz.
 - Yasaklar **[WebFetch ile doğrulandı]**: platformu probe/load-test etme; takım başına 1 Freya key; phone agent kit tool API'si dışında servis çağırırsa vaka düşer; elle yapılmış agent teslim edilemez; hidden brief'ten hiçbir şey builder'a yazılamaz; 1 veya 2 kişilik takım.
-- Limitler: builder süresi brief başına 30 dk; aynı model herkeste. **Workflow limiti ÇELİŞKİLİ:** sayfada 10 (mentor tam metni okudu), README'de 200 (benim WebFetch özetim de 200 dedi, küçük model özeti). 10 esas alınır; Sena sayfada doğrulayacak; destek kanalına sor. Yerinde güncelle.
+- Limitler: builder süresi brief başına 30 dk; aynı model herkeste. Workflow limiti 200 (Sena sayfadan doğruladı; README ile aynı).
 - Tie-break sırası **[WebFetch ile doğrulandı]**: (1) geçen vakalardaki toplam promise tutarı, (2) trace'ten build süresi, (3) daha erken teslim.
 - Leaderboard **[WebFetch]**: "Nothing is scored yet", hidden benchmark ve doğrulamadan sonra görünür. Yani şimdi sıralama yok.
 - Practice vakalar: 13 (A: 10, B: 3), hepsi `now = 2026-10-14T11:00`, Çarşamba.
@@ -47,7 +47,7 @@ Bkz. `dev/TASK.md` (tek doğruluk kaynağı). Özet:
 - Banka mock: `https://freya-bank-mock.freyavoice.workers.dev/v1`, başlık `x-team-key`.
 - Slotlar (`.freya-agents.json`, gitignored): `base` workflow fbf7e2b0-4d71-4f6d-b9ba-8a569714d084 / agent b60b43aa-b227-455f-8dc7-c1ecd6df8161; `ref-a` (eski adı `brief-a`; Adım 5A'da yeniden adlandırıldı, yedek dev/backup/) workflow 0945c087-fd58-4b0e-af24-0d4f14e974d6 / agent **a1041f0f-763b-4eab-907a-c2b2efafa432** (v3 yayınlı). Organizatörün orijinal workflow'u dahil workspace'te 3 workflow var **[mentor]**.
 - Git: bf45813 v0-kit; 291d247 baseline; 58b7219 Gemini testi; 82a0891 reference/mutant; 1435fef TASK.md + PUB-10 + extra vakalar.
-- Freya bakiyesi başlangıçta $99.99 (UI). Harcama ölçülmedi: Sena bakiyeyi reps-3 öncesi/sonrası not edecek.
+- Freya bakiyesi başlangıçta $99.99 (UI). Harcamayı Sena kendi takip eder.
 
 ## 4. Kit anatomisi (kısa)
 
@@ -111,7 +111,7 @@ Bkz. `dev/TASK.md` (tek doğruluk kaynağı). Özet:
 ```
 cd "/Users/sena/Documents/build the builder/build-the-builder" && source env.sh && source .venv/bin/activate && python3 tools/run_cases.py a1041f0f-763b-4eab-907a-c2b2efafa432 --brief A --reps 3 --out results/ref-a-reps3.json 2>&1 | tee dev/ref-a-reps3.log
 ```
-3 ardışık simülasyon, ~5 dk. Çıktılar: `results/ref-a-reps3.json`, `dev/ref-a-reps3.log`, `results/log.jsonl`. Sena bakiyeyi öncesi/sonrası, `/usage` yüzdesini yazacak. Ona kadar Freya'da simülasyon başlatma, UI'da Re-run yok.
+3 ardışık simülasyon, ~5 dk. Çıktılar: `results/ref-a-reps3.json`, `dev/ref-a-reps3.log`, `results/log.jsonl`. (Geçmiş: bu koşu yapıldı, bkz. §12.)
 
 Sonuç gelince yapılacak (mentor talebi): vaka bazlı analiz: hangi vaka 3/3; düşen vaka hangi nedenle (judge gürültüsü / tool sırası / tarih / outcome). `--out` JSON'undaki `call_id`'lerle `freya.get_call` üzerinden transkript çek (okuma, simülasyon değil). Bu veriyle mentor v1'in ilk işini seçecek.
 
@@ -123,7 +123,7 @@ Sonuç gelince yapılacak (mentor talebi): vaka bazlı analiz: hangi vaka 3/3; d
 
 **Gerekçe (referans builder gözleminden):** sample builder her koşuda kendi üretici betiğini doğaçlama yazıyor (varyans), brief değerlerini koda gömüyor, trace'i yok, en iyi sürümü saklamıyor, wall-clock koruması yok. Hidden brief değerleri repoya yazılırsa yasak ihlali olur.
 
-**Açık sorular (destek kanalı, yanıt yok):** doğrulama koşusunda hangi model anahtarı; hidden brief için mock bankadan test oturumu nasıl alınır (practice/sessions yalnız PUB id'lerini tanıyor); formdaki commit builder'ın son commit'i mi; workflow limiti 10 mu 200 mü; `agent_config.temperature` değiştirilebilir mi (varsayılan 0.7; organizatör izni gerekli, deney E6).
+**Açık sorular (destek kanalı, yanıt yok):** doğrulama koşusunda hangi model anahtarı; hidden brief için mock bankadan test oturumu nasıl alınır (practice/sessions yalnız PUB id'lerini tanıyor); formdaki commit builder'ın son commit'i mi; `agent_config.temperature` değiştirilebilir mi (varsayılan 0.7; organizatör izni gerekli, deney E6).
 
 ## 8. Bilinen riskler
 
@@ -135,7 +135,7 @@ Sonuç gelince yapılacak (mentor talebi): vaka bazlı analiz: hangi vaka 3/3; d
 
 ## 9. Ana dokümanın güncel olmayan maddeleri
 
-`yapay_zeka_ile_konuştuğumuz_kısım.md` içinde: "ikinci workspace ile paralel koşu" (geri alındı: takım başına 1 workspace/key); simülasyon süreleri ("3-11 dk" fazla kötümser, ~85 sn ölçüldü); giriş komutu ve trace içeriği (bkz. §2); "probing" kuralı (var); workflow limiti (çelişkili). "~2/13 baseline" Brief A+B içindi.
+`yapay_zeka_ile_konuştuğumuz_kısım.md` içinde: "ikinci workspace ile paralel koşu" (geri alındı: takım başına 1 workspace/key); simülasyon süreleri ("3-11 dk" fazla kötümser, ~85 sn ölçüldü); giriş komutu ve trace içeriği (bkz. §2); "probing" kuralı (var); workflow limiti (200; Sena sayfadan doğruladı). "~2/13 baseline" Brief A+B içindi.
 
 ## 10. Dosya haritası
 
@@ -148,7 +148,7 @@ Sonuç gelince yapılacak (mentor talebi): vaka bazlı analiz: hangi vaka 3/3; d
 
 ## 11. Yeni oturumun ilk işleri (öneri)
 
-1. `git log --oneline`, `dev/EXPERIMENTS.md` ve bu dosyayı oku. Sena'ya reps-3 durumunu sor.
+1. `git log --oneline`, `dev/EXPERIMENTS.md` ve bu dosyayı oku. Sena'ya soru sorma; durum için §0 ve EXPERIMENTS.md yeter.
 2. `results/ref-a-reps3.json` varsa vaka bazlı analiz yap (§6), EXPERIMENTS.md'ye satır ekle, commit.
 3. Mentor v1 işini seçmeden builder kodu yazmaya başlama. Seçilince: `builder/build.py`, zaman damgalı trace yazıcı, `runs/<brief>/` çıktı dizini, statik doğrulayıcı.
 
@@ -167,5 +167,6 @@ Sonuç gelince yapılacak (mentor talebi): vaka bazlı analiz: hangi vaka 3/3; d
 - Slotlar: `brief-a` agent 43448089-96e4-45b9-96dd-53d57a5474e8 (workflow 88310720-44b9-4d7b-9ad3-ce8cbdc7e203); `brief-b` agent df3d0722-9d83-48a2-85a5-a0fb817aef3a (workflow 1428905d-935f-4f35-8788-d152b348f03f). `ref-a` (v3, 8/10 reps-3) korundu.
 - Tek koşu: A 10/10, B 3/3. **Referans değil: kirli koşu.** Builder `dev/HANDOFF.md` (tam), `dev/EXPERIMENTS.md`, `results/log.jsonl`, `dev/reference/sample-a.workflow.json` okudu; ürettiği per-product `account_facts` code node'u HANDOFF'un bant dersiyle örtüşüyor (bkz. dev/CONTAMINATION_AUDIT.md). Kural: submission repo'sunda dev notları olmayacak; her builder koşusu temiz klonda/dizinde yapılacak (dev/REPO_HYGIENE_PLAN.md).
 - Brief B'de ürün imleci ve sayaçlar kodda değil prompt'ta (dev/GEN_PHONE_AGENTS_CONSTANTS.md).
-- **Bekleyen:** yeni agent'ların `--reps 3` sonuçları (Sena'nın terminalinde: A `results/new-a-reps3.json`, B `results/new-b-reps3.json`, loglar `dev/new-a-reps3.log`, `dev/new-b-reps3.log`). Gelince bu bölüme eklenecek. Sonra: temiz dizinde mutant koşusu (builder'ı dev/ notları olmayan dizinde, değiştirilmiş briefle çalıştır, çıkan agent'ı `--cases dev/mutant/...` ile skorla).
-- Yön notu (mentor): SDK builder'ında kalıp skill'leri iyileştirme eğilimi; kesin karar reps-3 ve mutant ölçümlerinden sonra. Workflow sayısı mentora göre 5 (organizatörün orijinali, base, ref-a, brief-a, brief-b), limit 10 mu 200 mü doğrulanmadı.
+- Yeni agent'ların reps-3'ü koşuldu: aşağıdaki "Yeni agent reps-3" alt bölümü. Sıradaki: clean-room mutant koşusu (`dev/run_mutant_pipeline.sh`).
+- **Model notu:** A+B builder koşusu Opus'la çalıştı ($2.35, A+B birlikte, 22 tur); önceki sample builder A koşusu Sonnet'le ($1.10, yalnız A). Kıyaslanabilir değil (model ve kapsam farklı).
+- Yön notu (mentor): SDK builder'ında kalıp skill'leri iyileştirme eğilimi; kesin karar reps-3 ve mutant ölçümlerinden sonra. Workspace'te mentora göre 5 workflow var (organizatörün orijinali, base, ref-a, brief-a, brief-b); limit 200, sorun yok.
