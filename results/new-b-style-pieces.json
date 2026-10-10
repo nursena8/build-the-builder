@@ -1,0 +1,178 @@
+{
+ "agent_id": "df3d0722-9d83-48a2-85a5-a0fb817aef3a",
+ "simulation_id": "a420643d-856c-4e76-965c-5415ad362c3e",
+ "iteration_id": "ff9a5c20-9588-4715-b5e5-c9fb2b8a4177",
+ "seconds": 74,
+ "passed": 1,
+ "total": 3,
+ "runs": 1,
+ "final": [
+  {
+   "id": "PUB-11",
+   "family": "Multi-product",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-12",
+   "family": "Multi-product",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-13",
+   "family": "Multi-product",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  }
+ ],
+ "rows": [
+  {
+   "id": "PUB-11",
+   "level": "medium",
+   "family": "Multi-product",
+   "pass": true,
+   "failed": [],
+   "call_id": "66e8b40b-00cf-4bc0-9c95-f5d8734f0bd2",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "create_promise",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_1aece300-1f0",
+   "slowest_turn_s": 3.3,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-12",
+   "level": "hard",
+   "family": "Multi-product",
+   "pass": false,
+   "failed": [
+    "outcome ('not_verified', 'failed'), expected ('promise', None)",
+    "promises [], expected [('p1', 510.0, '2026-10-15')]",
+    "notes [], expected [('p2', 'refused'), ('p3', 'refused')]",
+    "conversation: The conversation failed several success criteria: - The date of birth question was asked again eight times (Messages 4, 6, 8, 10, 12, 14, 16, and 18) after the initial inquiry in Message 2, violating the requirement that it not be asked again. - The phone question was asked again twice (Messages 22 and 24) after the initial inquiry in Message 20, violating the requirement that it be asked again ex"
+   ],
+   "call_id": "5c4e8983-40a1-4c3f-bc60-1c8406643b7f",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "close_call"
+   ],
+   "customer_id": "c_84ab6c8e-a18",
+   "slowest_turn_s": 1.0,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-13",
+   "level": "hard",
+   "family": "Multi-product",
+   "pass": false,
+   "failed": [
+    "outcome ('not_verified', 'failed'), expected ('promise', None)",
+    "promises [], expected [('p1', 300.0, '2026-10-30'), ('p2', 900.0, '2026-10-23')]",
+    "conversation: The call failed because the customer was unable to pass the identity verification process. Specifically, after failing to provide the full date of birth twice (Messages 3 and 5) and then failing to provide the correct last four digits of the phone number (Message 9), the assistant correctly terminated the call according to security protocols. Consequently, no information regarding the credit card "
+   ],
+   "call_id": "56e3a829-ea10-4623-872f-2cfc38ace1a6",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "verify_identity",
+    "close_call"
+   ],
+   "customer_id": "c_2656d73f-073",
+   "slowest_turn_s": 2.4,
+   "ended": "assistant-ended-call"
+  }
+ ],
+ "all_rows": [
+  [
+   {
+    "id": "PUB-11",
+    "level": "medium",
+    "family": "Multi-product",
+    "pass": true,
+    "failed": [],
+    "call_id": "66e8b40b-00cf-4bc0-9c95-f5d8734f0bd2",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "create_promise",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_1aece300-1f0",
+    "slowest_turn_s": 3.3,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-12",
+    "level": "hard",
+    "family": "Multi-product",
+    "pass": false,
+    "failed": [
+     "outcome ('not_verified', 'failed'), expected ('promise', None)",
+     "promises [], expected [('p1', 510.0, '2026-10-15')]",
+     "notes [], expected [('p2', 'refused'), ('p3', 'refused')]",
+     "conversation: The conversation failed several success criteria: - The date of birth question was asked again eight times (Messages 4, 6, 8, 10, 12, 14, 16, and 18) after the initial inquiry in Message 2, violating the requirement that it not be asked again. - The phone question was asked again twice (Messages 22 and 24) after the initial inquiry in Message 20, violating the requirement that it be asked again ex"
+    ],
+    "call_id": "5c4e8983-40a1-4c3f-bc60-1c8406643b7f",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "close_call"
+    ],
+    "customer_id": "c_84ab6c8e-a18",
+    "slowest_turn_s": 1.0,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-13",
+    "level": "hard",
+    "family": "Multi-product",
+    "pass": false,
+    "failed": [
+     "outcome ('not_verified', 'failed'), expected ('promise', None)",
+     "promises [], expected [('p1', 300.0, '2026-10-30'), ('p2', 900.0, '2026-10-23')]",
+     "conversation: The call failed because the customer was unable to pass the identity verification process. Specifically, after failing to provide the full date of birth twice (Messages 3 and 5) and then failing to provide the correct last four digits of the phone number (Message 9), the assistant correctly terminated the call according to security protocols. Consequently, no information regarding the credit card "
+    ],
+    "call_id": "56e3a829-ea10-4623-872f-2cfc38ace1a6",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "verify_identity",
+     "close_call"
+    ],
+    "customer_id": "c_2656d73f-073",
+    "slowest_turn_s": 2.4,
+    "ended": "assistant-ended-call"
+   }
+  ]
+ ]
+}

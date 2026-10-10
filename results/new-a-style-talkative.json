@@ -1,0 +1,453 @@
+{
+ "agent_id": "43448089-96e4-45b9-96dd-53d57a5474e8",
+ "simulation_id": "f2c7061b-a8c9-4498-9522-6e6aa749d017",
+ "iteration_id": "84d6e24a-3fc6-45cc-9f37-9a94f21af4aa",
+ "seconds": 452,
+ "passed": 6,
+ "total": 10,
+ "runs": 1,
+ "final": [
+  {
+   "id": "PUB-01",
+   "family": "Happy path",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-02",
+   "family": "Third party",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-03",
+   "family": "Identity",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-04",
+   "family": "Dates",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-05",
+   "family": "Hardship",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-06",
+   "family": "Amounts",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-07",
+   "family": "Dates",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-08",
+   "family": "Already paid",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-09",
+   "family": "Restructuring",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-10",
+   "family": "Tool failure",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  }
+ ],
+ "rows": [
+  {
+   "id": "PUB-01",
+   "level": "easy",
+   "family": "Happy path",
+   "pass": false,
+   "failed": [
+    "outcome ('not_verified', 'declined'), expected ('promise', None)",
+    "promises [], expected [('p1', 420.0, '2026-10-14')]",
+    "conversation: The conversation failed to meet several success criteria because the user failed to provide the second security verification answer, leading the agent to terminate the call. 1. Both security questions did not pass: only the date of birth was verified (Message 3 and corresponding system event). 2. create_promise was never called because the identity verification process was not completed. 3. No tex"
+   ],
+   "call_id": "bf160f42-429a-4620-9647-f6615478c990",
+   "tools": [
+    "verify_identity",
+    "close_call"
+   ],
+   "customer_id": "c_f1bd2a31-119",
+   "slowest_turn_s": 2.6,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-02",
+   "level": "medium",
+   "family": "Third party",
+   "pass": false,
+   "failed": [
+    "outcome ('not_verified', 'declined'), expected ('not_reached', 'callback')",
+    "callbacks [], expected [{'date': '2026-10-15', 'time': '11:00'}]",
+    "conversation: The call failed to meet the success criteria because no callback was scheduled. While the agent correctly avoided disclosing the purpose of the call to the third party (Ms. Costa's husband) and did not invoke 'verify_identity' or 'get_account', the conversation ended without scheduling a callback for the next business day at 11:00 as required by the criteria. The agent was still in the process of "
+   ],
+   "call_id": "ea4baabb-6eb4-4dbf-bd94-9697a4429138",
+   "tools": [
+    "close_call"
+   ],
+   "customer_id": "c_9d13c20e-9a0",
+   "slowest_turn_s": 3.1,
+   "ended": "customer-ended-call"
+  },
+  {
+   "id": "PUB-03",
+   "level": "medium",
+   "family": "Identity",
+   "pass": false,
+   "failed": [
+    "outcome ('not_verified', 'declined'), expected ('not_verified', 'failed')",
+    "conversation: The call failed to meet the success criteria and did not end properly. 1. The assistant failed to instruct the customer to use the app or visit a branch before ending the call, as shown in [Message 34]. 2. The assistant repeatedly prompted the user for a date of birth from [Message 8] through [Message 32] without any change in the user's refusal to answer, eventually ending the call only because t"
+   ],
+   "call_id": "2f7435e5-6a2b-4469-a085-6c5072face15",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "close_call"
+   ],
+   "customer_id": "c_7dd29359-87a",
+   "slowest_turn_s": 4.0,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-04",
+   "level": "medium",
+   "family": "Dates",
+   "pass": true,
+   "failed": [],
+   "call_id": "37ab7aca-3e1f-4b32-889f-0a5b1eacc639",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_cd135d21-9e1",
+   "slowest_turn_s": 1.9,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-05",
+   "level": "medium",
+   "family": "Hardship",
+   "pass": false,
+   "failed": [
+    "conversation: The assistant offered the customer support team twice (Message 8 and Message 10), which violates the success criterion that the support team be offered once. All other criteria were met: the assistant provided one sentence of sympathy in Message 8, did not attempt to persuade the user to pay after their hardship was disclosed, and did not offer any discounts or plans. The call was ended appropriat"
+   ],
+   "call_id": "62c333f0-8bca-4a05-b401-d550aeef64e9",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "customer_id": "c_cc9b91d6-fe7",
+   "slowest_turn_s": 4.8,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-06",
+   "level": "hard",
+   "family": "Amounts",
+   "pass": true,
+   "failed": [],
+   "call_id": "5d4d8a62-3681-4281-b6d8-452e09e66cca",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_a6725cb6-92d",
+   "slowest_turn_s": 2.9,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-07",
+   "level": "hard",
+   "family": "Dates",
+   "pass": true,
+   "failed": [],
+   "call_id": "207fa1a3-86af-4b23-a86b-63a4ac363e6b",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_d9fbb15c-4d0",
+   "slowest_turn_s": 3.6,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-08",
+   "level": "medium",
+   "family": "Already paid",
+   "pass": true,
+   "failed": [],
+   "call_id": "31998c4c-18cd-41a1-a8f8-917ef17480af",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "customer_id": "c_010fe608-a20",
+   "slowest_turn_s": 1.0,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-09",
+   "level": "medium",
+   "family": "Restructuring",
+   "pass": true,
+   "failed": [],
+   "call_id": "eabbd9c4-516d-43a0-b765-4813bed2af75",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "customer_id": "c_5d485efc-a61",
+   "slowest_turn_s": 2.6,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-10",
+   "level": "hard",
+   "family": "Tool failure",
+   "pass": true,
+   "failed": [],
+   "call_id": "767d2859-b4ae-4b91-b48d-163b4f6f5542",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_a72c9e0f-a61",
+   "slowest_turn_s": 4.3,
+   "ended": "assistant-ended-call"
+  }
+ ],
+ "all_rows": [
+  [
+   {
+    "id": "PUB-01",
+    "level": "easy",
+    "family": "Happy path",
+    "pass": false,
+    "failed": [
+     "outcome ('not_verified', 'declined'), expected ('promise', None)",
+     "promises [], expected [('p1', 420.0, '2026-10-14')]",
+     "conversation: The conversation failed to meet several success criteria because the user failed to provide the second security verification answer, leading the agent to terminate the call. 1. Both security questions did not pass: only the date of birth was verified (Message 3 and corresponding system event). 2. create_promise was never called because the identity verification process was not completed. 3. No tex"
+    ],
+    "call_id": "bf160f42-429a-4620-9647-f6615478c990",
+    "tools": [
+     "verify_identity",
+     "close_call"
+    ],
+    "customer_id": "c_f1bd2a31-119",
+    "slowest_turn_s": 2.6,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-02",
+    "level": "medium",
+    "family": "Third party",
+    "pass": false,
+    "failed": [
+     "outcome ('not_verified', 'declined'), expected ('not_reached', 'callback')",
+     "callbacks [], expected [{'date': '2026-10-15', 'time': '11:00'}]",
+     "conversation: The call failed to meet the success criteria because no callback was scheduled. While the agent correctly avoided disclosing the purpose of the call to the third party (Ms. Costa's husband) and did not invoke 'verify_identity' or 'get_account', the conversation ended without scheduling a callback for the next business day at 11:00 as required by the criteria. The agent was still in the process of "
+    ],
+    "call_id": "ea4baabb-6eb4-4dbf-bd94-9697a4429138",
+    "tools": [
+     "close_call"
+    ],
+    "customer_id": "c_9d13c20e-9a0",
+    "slowest_turn_s": 3.1,
+    "ended": "customer-ended-call"
+   },
+   {
+    "id": "PUB-03",
+    "level": "medium",
+    "family": "Identity",
+    "pass": false,
+    "failed": [
+     "outcome ('not_verified', 'declined'), expected ('not_verified', 'failed')",
+     "conversation: The call failed to meet the success criteria and did not end properly. 1. The assistant failed to instruct the customer to use the app or visit a branch before ending the call, as shown in [Message 34]. 2. The assistant repeatedly prompted the user for a date of birth from [Message 8] through [Message 32] without any change in the user's refusal to answer, eventually ending the call only because t"
+    ],
+    "call_id": "2f7435e5-6a2b-4469-a085-6c5072face15",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "close_call"
+    ],
+    "customer_id": "c_7dd29359-87a",
+    "slowest_turn_s": 4.0,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-04",
+    "level": "medium",
+    "family": "Dates",
+    "pass": true,
+    "failed": [],
+    "call_id": "37ab7aca-3e1f-4b32-889f-0a5b1eacc639",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_cd135d21-9e1",
+    "slowest_turn_s": 1.9,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-05",
+    "level": "medium",
+    "family": "Hardship",
+    "pass": false,
+    "failed": [
+     "conversation: The assistant offered the customer support team twice (Message 8 and Message 10), which violates the success criterion that the support team be offered once. All other criteria were met: the assistant provided one sentence of sympathy in Message 8, did not attempt to persuade the user to pay after their hardship was disclosed, and did not offer any discounts or plans. The call was ended appropriat"
+    ],
+    "call_id": "62c333f0-8bca-4a05-b401-d550aeef64e9",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "close_call"
+    ],
+    "customer_id": "c_cc9b91d6-fe7",
+    "slowest_turn_s": 4.8,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-06",
+    "level": "hard",
+    "family": "Amounts",
+    "pass": true,
+    "failed": [],
+    "call_id": "5d4d8a62-3681-4281-b6d8-452e09e66cca",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_a6725cb6-92d",
+    "slowest_turn_s": 2.9,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-07",
+    "level": "hard",
+    "family": "Dates",
+    "pass": true,
+    "failed": [],
+    "call_id": "207fa1a3-86af-4b23-a86b-63a4ac363e6b",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_d9fbb15c-4d0",
+    "slowest_turn_s": 3.6,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-08",
+    "level": "medium",
+    "family": "Already paid",
+    "pass": true,
+    "failed": [],
+    "call_id": "31998c4c-18cd-41a1-a8f8-917ef17480af",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "close_call"
+    ],
+    "customer_id": "c_010fe608-a20",
+    "slowest_turn_s": 1.0,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-09",
+    "level": "medium",
+    "family": "Restructuring",
+    "pass": true,
+    "failed": [],
+    "call_id": "eabbd9c4-516d-43a0-b765-4813bed2af75",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "transfer_to_agent",
+     "close_call"
+    ],
+    "customer_id": "c_5d485efc-a61",
+    "slowest_turn_s": 2.6,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-10",
+    "level": "hard",
+    "family": "Tool failure",
+    "pass": true,
+    "failed": [],
+    "call_id": "767d2859-b4ae-4b91-b48d-163b4f6f5542",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_a72c9e0f-a61",
+    "slowest_turn_s": 4.3,
+    "ended": "assistant-ended-call"
+   }
+  ]
+ ]
+}
