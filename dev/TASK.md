@@ -6,7 +6,7 @@ Kaynak: mentorun aktardığı hackathon sayfası özeti (Overview/Data/Evaluatio
 - Trace içeriği: başlangıç ve bitiş zamanı; her model çağrısı (model + tek satır amaç); Freya'da oluşturulanlar (workflow id, agent id, node ve tool sayısı); kendi agent'ı üzerindeki testler ve sonuçları. Anahtarlar commit öncesi temizlenir. Trace'siz giriş sıralanmaz.
 - Teslim: GitHub repo, commit, run_command, her brief için `freya.export_workflow` çıktısı, her brief için trace.
 - Doğrulama: ilk 10 takımın repo'sunu organizatörler o commit'ten klonlayıp builder'ı aynı brieflerde çalıştırır. Kendi koşuları belirgin şekilde düşükse giriş silinir. Her trace bir reviewer agent tarafından koda ve oluşturulan agent'a karşı kontrol edilir.
-- Limitler: builder koşusu brief başına en fazla 30 dk (kendi testleri dahil); workspace başına en fazla 10 workflow (yerinde güncelle; README 200 diyor, çelişki, kısıtlayıcı olan geçerli); aynı anda 1 simülasyon; takım başına 1 Freya key ve 1 workspace.
+- Limitler: builder koşusu brief başına en fazla 30 dk (kendi testleri dahil); workspace başına workflow limiti: ÇELİŞKİ. Mentor özeti 10 diyor; benim WebFetch'im (hackathon sayfası, Rules) ve README 200 diyor. Kesin değil, güvenli davran: yerinde güncelle, az workflow; aynı anda 1 simülasyon; takım başına 1 Freya key ve 1 workspace.
 - Yasaklar: platformu probe veya load-test etme; phone agent kit tool API'si dışında servis çağıramaz; hidden brief'ten hiçbir kural, değer veya isim builder koduna/promptlarına yazılamaz; phone agent elle düzenlenemez.
 - Final: 2 hidden brief x 30 müşteri (1-3 ürün, birkaç takvim günü), 3 tekrarın üçü de geçmeli, skor /60. Eşitlikte sırayla: geçen vakalardaki toplam promise tutarı, trace'ten okunan build süresi, erken teslim.
 
