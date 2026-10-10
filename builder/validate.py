@@ -93,6 +93,16 @@ def check(wf, ops):
                     if m.group(1) in enums and m.group(3) not in enums[m.group(1)]:
                         err(f"{name}: code writes {m.group(3)!r} to extraction variable {m.group(1)!r}; it accepts only {sorted(enums[m.group(1)])}. Add a neutral value such as 'none' to the enum and reset to that")
 
+    # a global (intent) node is checked after every transition, so it also fires while a code node runs and then
+    # re-enters the previous node, re-running its counters
+    for gname, g in (wf.get("global_nodes") or {}).items():
+        cond = g.get("condition") or {}
+        if cond.get("operator") != "matches_intent": continue
+        excl = set(g.get("excluded_nodes") or [])
+        loose = sorted(k for k, n in nodes.items() if n.get("node_type") != "conversation" and k not in excl)
+        if loose:
+            err(f"global node {gname}: not excluded from {len(loose)} non-conversation nodes (e.g. {', '.join(loose[:4])}); one customer sentence can fire it while a counting node runs and the counter runs twice")
+
     # reachability
     rev = collections.defaultdict(set); fwd = collections.defaultdict(set)
     for name, n in nodes.items():
