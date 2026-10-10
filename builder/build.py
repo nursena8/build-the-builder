@@ -37,7 +37,7 @@ BASH_DENY = [r"\bfind\s+(/|~|\$HOME)", r"(^|[\s'\"=])~/", r"\$HOME", r"/Users/",
 
 def guard(tool, tool_input, workdir):
     """Return a reason string if the call leaves the work folder, else None."""
-    wd = [str(workdir), str(workdir.resolve())]
+    wd = sorted({str(workdir), str(workdir.resolve())}, key=len, reverse=True)  # longest first: /private/var/... before /var/...
     if tool == "Bash":
         cmd = tool_input.get("command", "")
         for w in wd: cmd = cmd.replace(w, "")
