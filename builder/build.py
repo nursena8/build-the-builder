@@ -60,6 +60,7 @@ def prepare_workdir(brief, api):
     shutil.copy(ROOT / "examples" / "base-agent.json", work / "examples" / "base-agent.json")
     shutil.copy(ROOT / "freya.py", work / "freya.py")
     for f in ("validate.py", "codecheck.py"): shutil.copy(HERE / f, work / "tools" / f)
+    shutil.copytree(HERE / "lib", work / "lib", ignore=shutil.ignore_patterns("__pycache__"))
     skill = work / ".claude" / "skills" / "build-phone-agent"; skill.mkdir(parents=True)
     shutil.copy(HERE / "skill" / "SKILL.md", skill / "SKILL.md")
     return work
