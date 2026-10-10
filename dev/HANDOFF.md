@@ -170,3 +170,16 @@ Sonuç gelince yapılacak (mentor talebi): vaka bazlı analiz: hangi vaka 3/3; d
 - Yeni agent'ların reps-3'ü koşuldu: aşağıdaki "Yeni agent reps-3" alt bölümü. Sıradaki: clean-room mutant koşusu (`dev/run_mutant_pipeline.sh`).
 - **Model notu:** A+B builder koşusu Opus'la çalıştı ($2.35, A+B birlikte, 22 tur); önceki sample builder A koşusu Sonnet'le ($1.10, yalnız A). Kıyaslanabilir değil (model ve kapsam farklı).
 - Yön notu (mentor): SDK builder'ında kalıp skill'leri iyileştirme eğilimi; kesin karar reps-3 ve mutant ölçümlerinden sonra. Workspace'te mentora göre 5 workflow var (organizatörün orijinali, base, ref-a, brief-a, brief-b); limit 200, sorun yok.
+
+### Yeni agent reps-3 (Adım 6) **[doğrulandı: results/new-a-reps3.json, results/new-b-reps3.json]**
+
+- A (agent 43448089…): 9/10, 3/3 kuralı; PUB-01..09 üçünde 3/3, **PUB-10 1/3** (rep2, rep3 düştü). B (agent df3d0722…): **3/3**, PUB-11/12/13 hepsi 3/3.
+- PUB-10: transkript kalıbı üç repte aynı; judge açılıştaki "recorded" yüzünden 2 repte düşürdü, rep1'de aynı cümleyi kabul etti. Kriter metni brief kural 1 ile çelişiyor; sabit açılışta "recording" gibi başka bir sözcük denenebilir ama bu doğrulanmadı ve brief kural 1'i ("the call is recorded") ihlal riski var, mentor kararı gerekir.
+- B: üç repte aynı promise ve note argümanları (bkz. EXPERIMENTS.md). Ürün imleci prompt'ta olmasına rağmen bu ölçümde kararsızlık yok; yalnızca 3 vaka, genelleme iddia edilmez.
+- Kirli koşunun agent'ları: referans skor değil (CONTAMINATION_AUDIT).
+
+## 14. Adım 6 araçları
+
+- Kalıcı izin §1/6'da. `dev/make_cleanroom.sh <ad> <brief>` allow-list ile `~/builder-cleanrooms/<ad>` oluşturur (public-test-set.json, dev/, env.sh, .freya-agents.json yok).
+- `./dev/run_mutant_pipeline.sh` (Sena'nın terminalinde): clean room, Sonnet SDK builder, agent_id okuma, `cases-mutant.json` ve `cases-mutant-extra.json` reps-3. Çıktılar `dev/mutant-*.log`, `results/mutant-*.json`. Her adım başarısızsa durur ve adımı yazar. Çalıştırılmadı.
+- `dev/mutant/cases-b-extra.json`: Brief B için 3 ekstra vaka (PUB-11/12/13 id'leri; ürünleri mock belirler, yalnız script ve beklenen ledger bağımsız hesaplandı). Henüz koşulmadı.

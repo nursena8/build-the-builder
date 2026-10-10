@@ -40,3 +40,10 @@ Doğrulama: `runs/<brief>/` altında workflow ve export oluştu mu; `ls`/`find` 
 
 ## Açık sorular (destek kanalı)
 Commit'e builder kodu mu yoksa çıktılar ve trace de mi giriyor (formda "one commit"); doğrulama koşusunda hangi model anahtarı; `tools/` ve `docs/` kopyalarının submission'da olup olmaması.
+
+## Güncelleme (Adım 6)
+
+- **Mevcut repo yayınlanmaz.** İçinde `dev/` geçmişi, deney notları ve brief A/B'ye özel üreticiler var.
+- **Pazar öğleden sonra temiz repo:** yeni boş repo, `builder/` ve `runs/` ile **tek commit**; git geçmişi taşınmaz. Hidden brief'ler açılmadan önce builder kodu bu repoda olgunlaştırılır, brief'ler açılınca yalnız `runs/<brief>/` çıktıları ve trace'ler eklenir; teslim commit'i bu tek temiz zincirden çıkar.
+- Her builder koşusu `dev/make_cleanroom.sh` mantığıyla allow-list kopyada yapılır (public-test-set.json yok: hidden'da builder'ın elinde eşleşen test seti olmayacak, ölçüm tek-atış genelleme).
+- Önceki "mevcut repoda `dev/` sil" seçeneği (b) elendi.

@@ -1,0 +1,189 @@
+[
+ {
+  "id": "PUB-11",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "medium",
+  "title": "Three products, one date after the late-band deadline (extra)",
+  "variables": {
+   "first_name": "Sofia",
+   "last_name": "Almeida",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1987-06-03",
+   "phone_last4": "2288"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "2288",
+    "past_due": 220.0,
+    "days_late": 9,
+    "minimum_payment": 66.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 640.0,
+    "days_late": 9,
+    "instalment_amount": 213.0
+   },
+   {
+    "type": "car_loan",
+    "past_due": 75.0,
+    "days_late": 3,
+    "instalment_amount": 25.0
+   }
+  ],
+  "script": "Verified. Cannot pay today. Wants to pay all three on Monday 2 November. Accepts any earlier date the agent says is the latest it can record for a product. Confirms once.",
+  "expected": {
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p1",
+     "amount": 220.0,
+     "date": "2026-10-23"
+    },
+    {
+     "product_id": "p2",
+     "amount": 640.0,
+     "date": "2026-10-23"
+    },
+    {
+     "product_id": "p3",
+     "amount": 75.0,
+     "date": "2026-11-02"
+    }
+   ],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [],
+   "outcome": "promise"
+  },
+  "checks": [
+   "card and personal loan (9 days late, late band) recorded on their deadline Friday 23 October",
+   "car loan (3 days late, early band) recorded on Monday 2 November, its deadline",
+   "the read-back says which two products moved to 23 October"
+  ]
+ },
+ {
+  "id": "PUB-12",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "hard",
+  "title": "Already paid, floor accepted, disputed product (extra)",
+  "variables": {
+   "first_name": "Marcus",
+   "last_name": "Bell",
+   "title": "Mr",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1983-10-19",
+   "phone_last4": "4410"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "9015",
+    "past_due": 510.0,
+    "days_late": 16,
+    "minimum_payment": 153.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 1320.0,
+    "days_late": 16,
+    "instalment_amount": 440.0
+   },
+   {
+    "type": "car_loan",
+    "past_due": 140.0,
+    "days_late": 7,
+    "instalment_amount": 46.0
+   }
+  ],
+  "script": "Gives the date of birth and last four digits correctly the first time. Cannot pay today. About the credit card says he already paid it in the app this morning. For the personal loan says the full amount is too much, accepts the instalment amount on Friday 16 October and confirms. About the car loan says he never had a car loan and this debt is not his.",
+  "expected": {
+   "reason": null,
+   "promises": [
+    {
+     "product_id": "p2",
+     "amount": 440.0,
+     "date": "2026-10-16"
+    }
+   ],
+   "notes": [
+    {
+     "product_id": "p1",
+     "reason": "paid"
+    },
+    {
+     "product_id": "p3",
+     "reason": "dispute"
+    }
+   ],
+   "callbacks": [],
+   "transfers": [],
+   "outcome": "promise"
+  },
+  "checks": [
+   "no promise on the credit card, one note paid",
+   "exactly one promise, on the personal loan, at the floor 440",
+   "one note dispute on the car loan, no promise there",
+   "the call is not ended by the dispute (rule 9)"
+  ]
+ },
+ {
+  "id": "PUB-13",
+  "brief": "B",
+  "family": "Multi-product",
+  "level": "hard",
+  "title": "Restructuring request before the combined confirmation (extra)",
+  "variables": {
+   "first_name": "Elena",
+   "last_name": "Rossi",
+   "title": "Ms",
+   "now": "2026-10-14T11:00"
+  },
+  "identity": {
+   "date_of_birth": "1991-01-08",
+   "phone_last4": "6604"
+  },
+  "products": [
+   {
+    "type": "credit_card",
+    "card_last4": "6604",
+    "past_due": 300.0,
+    "days_late": 4,
+    "minimum_payment": 90.0
+   },
+   {
+    "type": "personal_loan",
+    "past_due": 900.0,
+    "days_late": 20,
+    "instalment_amount": 300.0
+   }
+  ],
+  "script": "Verified. Cannot pay today. Says she can pay the credit card in full this Friday and the loan on 23 October. Before confirming the read-back asks whether the instalments on the loan can be lowered.",
+  "expected": {
+   "reason": "restructuring",
+   "promises": [],
+   "notes": [],
+   "callbacks": [],
+   "transfers": [
+    {
+     "queue": "restructuring"
+    }
+   ],
+   "outcome": "transferred"
+  },
+  "checks": [
+   "no create_promise call: the agreed promises were not yet recorded (rule 10)",
+   "no add_note calls at all, before or after the transfer",
+   "transfer_to_agent with queue restructuring, then close_call transferred/restructuring",
+   "agent does not describe a plan"
+  ]
+ }
+]
