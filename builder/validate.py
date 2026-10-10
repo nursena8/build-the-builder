@@ -103,6 +103,14 @@ def check(wf, ops):
         if loose:
             err(f"global node {gname}: not excluded from {len(loose)} non-conversation nodes (e.g. {', '.join(loose[:4])}); one customer sentence can fire it while a counting node runs and the counter runs twice")
 
+    # the extraction model does not know the call's date: a field that asks it for a calendar date resolves "tomorrow" from the real clock
+    for name, n in nodes.items():
+        for e in n.get("extraction_schema") or []:
+            desc = str(e.get("description") or "")
+            if e.get("type") == "date" or re.search(r"YYYY-MM-DD|ISO[ -]?8601|calendar date", desc, re.I):
+                if not e.get("enum_values") and re.search(r"date|day", str(e.get("name")), re.I):
+                    err(f"{name}: extraction field {e.get('name')!r} asks the model for a calendar date; extract the customer's words as text and resolve them in code from now (lib/cal.py resolve_phrase)")
+
     # reachability
     rev = collections.defaultdict(set); fwd = collections.defaultdict(set)
     for name, n in nodes.items():

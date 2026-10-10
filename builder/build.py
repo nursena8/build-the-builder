@@ -118,6 +118,44 @@ def export_with_retry(workflow_id, path):
     return None
 
 
+
+FIX_ROUNDS = int(os.environ.get("BUILD_FIX_ROUNDS", "2"))
+
+
+def local_workflow_path(work, stem):
+    f = work / "out" / f"{stem}.workflow.json"
+    if f.exists(): return f
+    c = sorted((work / "out").glob("*.workflow.json"))
+    return c[0] if c else None
+
+
+def static_check(work, stem, api):
+    """Apply the deterministic repairs in memory, then run the static validator. Returns (path, fixed workflow, changes, ERROR lines)."""
+    import subprocess, tempfile
+    sys.path.insert(0, str(HERE)); import autofix
+    f = local_workflow_path(work, stem)
+    if f is None: return None, None, [], []
+    fixed, changes = autofix.fix(json.loads(f.read_text()))
+    tmp = pathlib.Path(tempfile.mkdtemp(prefix="chk-")) / "w.json"; tmp.write_text(json.dumps(fixed))
+    r = subprocess.run([sys.executable, str(HERE / "validate.py"), str(tmp), str(api)], capture_output=True, text=True)
+    return f, fixed, changes, [l for l in r.stdout.splitlines() if l.startswith("ERROR")]
+
+
+def fix_prompt(errors):
+    return ("Your workflow has static errors. Fix out/gen.py (or the files it reads), regenerate the workflow, run "
+            "tools/validate.py and tools/codecheck.py until both pass, and save it again with freya.save_workflow. "
+            "Do not rewrite what already works. Errors:\n" + "\n".join(errors[:25]))
+
+
+def save_with_retry(slot, wf, work):
+    sys.path.insert(0, str(ROOT)); import freya
+    for i, wait in enumerate((0, 5, 15, 30)):
+        time.sleep(wait)
+        try: return freya.save_workflow(slot, wf, state_file=str(work / ".freya-agents.json"))
+        except Exception as e: log("save_retry", f"attempt {i + 1}: {scrub(str(e))[:160]}")
+    return None
+
+
 def main(argv):
     dry = "--dry-run" in argv; argv = [a for a in argv if a != "--dry-run"]
     if len(argv) != 3: print(__doc__); return 2
@@ -136,6 +174,30 @@ def main(argv):
         log("timeout", f"stopped after {MAX_SECONDS} s; exporting what was saved")
     except Exception as e:
         log("builder_error", scrub(str(e))[:300])
+
+    # feedback loop: errors the repairs cannot fix go back to the builder while time remains
+    for rnd in range(FIX_ROUNDS):
+        left = MAX_SECONDS - (time.time() - t0)
+        f, fixed, changes, errs = static_check(work, stem, api)
+        if not errs or left < 240: break
+        log("fix_round", f"{rnd + 1}: {len(errs)} error(s) left after repairs; {int(left)} s left")
+        for e in errs[:8]: log("fix_error", e[:200])
+        try:
+            res = asyncio.run(asyncio.wait_for(run_builder(work, fix_prompt(errs)), left - 60))
+            log("fix_round_done", f"turns={res['turns']} cost_usd={res['cost']:.2f}")
+        except asyncio.TimeoutError:
+            log("timeout", "fix round stopped by the time limit"); break
+        except Exception as e:
+            log("builder_error", scrub(str(e))[:300]); break
+    # final deterministic repairs, saved to the platform
+    f, fixed, changes, errs = static_check(work, stem, api)
+    if f is not None and changes:
+        for c in changes: log("autofix", c)
+        f.write_text(json.dumps(fixed, indent=1))
+        slot0, info0 = pick_slot(work, stem)
+        if info0 and save_with_retry(slot0, fixed, work): log("autofix_saved", f"slot={slot0}")
+        else: log("autofix_not_saved", "kept the repaired file locally")
+    for e in errs: log("remaining_error", e[:200])
 
     runs = ROOT / "runs" / stem; subm = ROOT / "submission"; runs.mkdir(parents=True, exist_ok=True); subm.mkdir(exist_ok=True)
     for p in (work / "out").glob("*"):
