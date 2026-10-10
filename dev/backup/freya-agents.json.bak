@@ -1,0 +1,11 @@
+{
+ "base": {
+  "workflow_id": "fbf7e2b0-4d71-4f6d-b9ba-8a569714d084",
+  "agent_id": "b60b43aa-b227-455f-8dc7-c1ecd6df8161"
+ },
+ "brief-a": {
+  "workflow_id": "0945c087-fd58-4b0e-af24-0d4f14e974d6",
+  "agent_id": "a1041f0f-763b-4eab-907a-c2b2efafa432",
+  "version": 3
+ }
+}
