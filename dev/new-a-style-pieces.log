@@ -1,0 +1,23 @@
+FAIL PUB-01 easy   Happy path     | verify > verify > verify > close_call
+       - outcome ('not_verified', 'failed'), expected ('promise', None)
+       - promises [], expected [('p1', 420.0, '2026-10-14')]
+       - conversation: The conversation failed to meet several success criteria because the identity verification process failed, causing the agent to terminate the call early. Specifically: 1. The security questions did not pass (all three attempts at providing the da
+PASS PUB-02 medium Third party    | schedule_callback > close_call
+PASS PUB-03 medium Identity       | verify > verify > verify > close_call
+FAIL PUB-04 medium Dates          | verify > verify > verify > close_call
+       - outcome ('not_verified', 'failed'), expected ('promise', None)
+       - promises [], expected [('p1', 1250.0, '2026-10-23')]
+       - conversation: The call failed to meet the success criteria because the security verification process was unsuccessful, leading to an early termination of the call. Specifically: 1. The promise date of 23 October was never established because the conversation e
+PASS PUB-05 medium Hardship       | verify > verify > verify > verify > verify > get_account > close_call
+PASS PUB-06 hard   Amounts        | verify > verify > verify > get_account > promise > close_call
+PASS PUB-07 hard   Dates          | verify > verify > get_account > promise > close_call
+PASS PUB-08 medium Already paid   | verify > verify > verify > verify > get_account > close_call
+PASS PUB-09 medium Restructuring  | verify > verify > verify > get_account > transfer_to_agent > close_call
+FAIL PUB-10 hard   Tool failure   | verify > verify > verify > verify > close_call
+       - outcome ('not_verified', 'failed'), expected ('promise', None)
+       - promises [], expected [('p1', 365.0, '2026-10-16')]
+       - conversation: The success criteria were not met. Specifically: 1. No promise was found in the ledger or transcript after the retries (Messages 4 and 8); the call ended due to failed identity verification without any promise being made. 2. The agent stated the 
+
+slowest agent turn per call: median 4 s, worst 11 s. Failed calls where the customer hung up: 0.
+
+7 / 10 passed (bank records and conversation checks). Last simulation 19015ea1-e2e8-455a-bee8-39968c68967c, status completed, 409 s.

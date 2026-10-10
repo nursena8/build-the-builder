@@ -1,0 +1,23 @@
+FAIL PUB-01 easy   Happy path     | verify > close_call
+       - outcome ('not_verified', 'declined'), expected ('promise', None)
+       - promises [], expected [('p1', 420.0, '2026-10-14')]
+       - conversation: The conversation failed to meet several success criteria because the user failed to provide the second security verification answer, leading the agent to terminate the call. 1. Both security questions did not pass: only the date of birth was veri
+FAIL PUB-02 medium Third party    | close_call
+       - outcome ('not_verified', 'declined'), expected ('not_reached', 'callback')
+       - callbacks [], expected [{'date': '2026-10-15', 'time': '11:00'}]
+       - conversation: The call failed to meet the success criteria because no callback was scheduled. While the agent correctly avoided disclosing the purpose of the call to the third party (Ms. Costa's husband) and did not invoke 'verify_identity' or 'get_account', t
+FAIL PUB-03 medium Identity       | verify > verify > close_call
+       - outcome ('not_verified', 'declined'), expected ('not_verified', 'failed')
+       - conversation: The call failed to meet the success criteria and did not end properly. 1. The assistant failed to instruct the customer to use the app or visit a branch before ending the call, as shown in [Message 34]. 2. The assistant repeatedly prompted the us
+PASS PUB-04 medium Dates          | verify > verify > get_account > promise > close_call
+FAIL PUB-05 medium Hardship       | verify > verify > get_account > close_call
+       - conversation: The assistant offered the customer support team twice (Message 8 and Message 10), which violates the success criterion that the support team be offered once. All other criteria were met: the assistant provided one sentence of sympathy in Message 
+PASS PUB-06 hard   Amounts        | verify > verify > get_account > promise > close_call
+PASS PUB-07 hard   Dates          | verify > verify > get_account > promise > close_call
+PASS PUB-08 medium Already paid   | verify > verify > get_account > close_call
+PASS PUB-09 medium Restructuring  | verify > verify > get_account > transfer_to_agent > close_call
+PASS PUB-10 hard   Tool failure   | verify > verify > get_account > promise > promise > close_call
+
+slowest agent turn per call: median 3 s, worst 5 s. Failed calls where the customer hung up: 1.
+
+6 / 10 passed (bank records and conversation checks). Last simulation f2c7061b-a8c9-4498-9522-6e6aa749d017, status completed, 452 s.
