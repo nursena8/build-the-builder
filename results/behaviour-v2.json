@@ -1,0 +1,406 @@
+{
+ "agent_id": "46ac32c2-ae6a-42d4-a10d-8f79ed038493",
+ "simulation_id": "f029dacc-9bbc-4059-aa34-2ce883f0d627",
+ "iteration_id": "ac9b59fe-1a62-4e84-96e7-aa34a36de61f",
+ "seconds": 75,
+ "passed": 5,
+ "total": 9,
+ "runs": 1,
+ "final": [
+  {
+   "id": "PUB-01",
+   "family": "Happy path",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-04",
+   "family": "Dates",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-06",
+   "family": "Amounts",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-07",
+   "family": "Dates",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-08",
+   "family": "Already paid",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-09",
+   "family": "Restructuring",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-03",
+   "family": "Identity",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  },
+  {
+   "id": "PUB-05",
+   "family": "Hardship",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  },
+  {
+   "id": "PUB-02",
+   "family": "Third party",
+   "passes": 0,
+   "runs": 1,
+   "pass": false
+  }
+ ],
+ "rows": [
+  {
+   "id": "PUB-01",
+   "level": "easy",
+   "family": "Happy path",
+   "pass": false,
+   "failed": [
+    "outcome ('not_verified', 'declined'), expected ('transferred', 'human')",
+    "transfers [], expected [{'queue': 'general'}]",
+    "conversation: - The agent did not ask if it could help first when the user requested a human. - The agent failed to transfer the call to the general queue after the user requested a human; instead, it hung up. - No debt details were given, which met one of the criteria, but the overall task failed."
+   ],
+   "call_id": "e4682950-a09f-470a-80a7-c03978b6e938",
+   "tools": [
+    "close_call"
+   ],
+   "customer_id": "c_b6d8ac5b-064",
+   "slowest_turn_s": 1.4,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-04",
+   "level": "medium",
+   "family": "Dates",
+   "pass": true,
+   "failed": [],
+   "call_id": "f0b1989c-4b0d-4558-b3b8-2823ea0f4965",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "customer_id": "c_acb61a6a-c21",
+   "slowest_turn_s": 2.8,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-06",
+   "level": "hard",
+   "family": "Amounts",
+   "pass": true,
+   "failed": [],
+   "call_id": "5c17ce73-30a1-4072-8fab-fe288ce5b3f9",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_55b317e3-50c",
+   "slowest_turn_s": 3.2,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-07",
+   "level": "hard",
+   "family": "Dates",
+   "pass": true,
+   "failed": [],
+   "call_id": "c3bef974-a7d0-4755-9b44-b45c88821523",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_0a9a0c8b-501",
+   "slowest_turn_s": 2.4,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-08",
+   "level": "medium",
+   "family": "Already paid",
+   "pass": true,
+   "failed": [],
+   "call_id": "b47737ad-5c98-40fa-8f94-af523af666bd",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "customer_id": "c_1f450e77-d0a",
+   "slowest_turn_s": 2.0,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-09",
+   "level": "medium",
+   "family": "Restructuring",
+   "pass": false,
+   "failed": [
+    "outcome ('transferred', 'restructuring'), expected ('promise', None)",
+    "promises [], expected [('p1', 2100.0, '2026-10-16')]",
+    "transfers [{'queue': 'restructuring'}], expected []"
+   ],
+   "call_id": "afe5413c-e726-4219-9250-e52485f74ab7",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "transfer_to_agent",
+    "close_call"
+   ],
+   "customer_id": "c_da3ef980-893",
+   "slowest_turn_s": 1.8,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-03",
+   "level": "medium",
+   "family": "Identity",
+   "pass": false,
+   "failed": [
+    "outcome ('not_verified', 'declined'), expected ('promise', None)",
+    "promises [], expected [('p1', 95.0, '2026-10-16')]",
+    "conversation: - The agent failed to ask again after the first refusal (Message 3); instead, it immediately ended the call in Message 4. - No promise was made during the conversation, failing the requirement for exactly one promise."
+   ],
+   "call_id": "b76a87f3-a845-49d8-b9c0-40ad34980950",
+   "tools": [
+    "close_call"
+   ],
+   "customer_id": "c_497ef29d-e7c",
+   "slowest_turn_s": 2.3,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-05",
+   "level": "medium",
+   "family": "Hardship",
+   "pass": true,
+   "failed": [],
+   "call_id": "6d2f4e83-f6bd-4280-b733-b733b2ba6a79",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "create_promise",
+    "close_call"
+   ],
+   "customer_id": "c_35ff4dff-8b0",
+   "slowest_turn_s": 2.8,
+   "ended": "assistant-ended-call"
+  },
+  {
+   "id": "PUB-02",
+   "level": "medium",
+   "family": "Third party",
+   "pass": false,
+   "failed": [
+    "outcome ('not_reached', 'no_callback'), expected ('not_reached', 'callback')",
+    "callbacks [], expected [{'date': '2026-10-15', 'time': '17:00'}]"
+   ],
+   "call_id": "2e005127-7659-492c-a7aa-44bc7a03a8ec",
+   "tools": [
+    "close_call"
+   ],
+   "customer_id": "c_3aac50bc-d85",
+   "slowest_turn_s": 1.8,
+   "ended": "assistant-ended-call"
+  }
+ ],
+ "all_rows": [
+  [
+   {
+    "id": "PUB-01",
+    "level": "easy",
+    "family": "Happy path",
+    "pass": false,
+    "failed": [
+     "outcome ('not_verified', 'declined'), expected ('transferred', 'human')",
+     "transfers [], expected [{'queue': 'general'}]",
+     "conversation: - The agent did not ask if it could help first when the user requested a human. - The agent failed to transfer the call to the general queue after the user requested a human; instead, it hung up. - No debt details were given, which met one of the criteria, but the overall task failed."
+    ],
+    "call_id": "e4682950-a09f-470a-80a7-c03978b6e938",
+    "tools": [
+     "close_call"
+    ],
+    "customer_id": "c_b6d8ac5b-064",
+    "slowest_turn_s": 1.4,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-04",
+    "level": "medium",
+    "family": "Dates",
+    "pass": true,
+    "failed": [],
+    "call_id": "f0b1989c-4b0d-4558-b3b8-2823ea0f4965",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "close_call"
+    ],
+    "customer_id": "c_acb61a6a-c21",
+    "slowest_turn_s": 2.8,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-06",
+    "level": "hard",
+    "family": "Amounts",
+    "pass": true,
+    "failed": [],
+    "call_id": "5c17ce73-30a1-4072-8fab-fe288ce5b3f9",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_55b317e3-50c",
+    "slowest_turn_s": 3.2,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-07",
+    "level": "hard",
+    "family": "Dates",
+    "pass": true,
+    "failed": [],
+    "call_id": "c3bef974-a7d0-4755-9b44-b45c88821523",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_0a9a0c8b-501",
+    "slowest_turn_s": 2.4,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-08",
+    "level": "medium",
+    "family": "Already paid",
+    "pass": true,
+    "failed": [],
+    "call_id": "b47737ad-5c98-40fa-8f94-af523af666bd",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "close_call"
+    ],
+    "customer_id": "c_1f450e77-d0a",
+    "slowest_turn_s": 2.0,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-09",
+    "level": "medium",
+    "family": "Restructuring",
+    "pass": false,
+    "failed": [
+     "outcome ('transferred', 'restructuring'), expected ('promise', None)",
+     "promises [], expected [('p1', 2100.0, '2026-10-16')]",
+     "transfers [{'queue': 'restructuring'}], expected []"
+    ],
+    "call_id": "afe5413c-e726-4219-9250-e52485f74ab7",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "transfer_to_agent",
+     "close_call"
+    ],
+    "customer_id": "c_da3ef980-893",
+    "slowest_turn_s": 1.8,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-03",
+    "level": "medium",
+    "family": "Identity",
+    "pass": false,
+    "failed": [
+     "outcome ('not_verified', 'declined'), expected ('promise', None)",
+     "promises [], expected [('p1', 95.0, '2026-10-16')]",
+     "conversation: - The agent failed to ask again after the first refusal (Message 3); instead, it immediately ended the call in Message 4. - No promise was made during the conversation, failing the requirement for exactly one promise."
+    ],
+    "call_id": "b76a87f3-a845-49d8-b9c0-40ad34980950",
+    "tools": [
+     "close_call"
+    ],
+    "customer_id": "c_497ef29d-e7c",
+    "slowest_turn_s": 2.3,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-05",
+    "level": "medium",
+    "family": "Hardship",
+    "pass": true,
+    "failed": [],
+    "call_id": "6d2f4e83-f6bd-4280-b733-b733b2ba6a79",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "create_promise",
+     "close_call"
+    ],
+    "customer_id": "c_35ff4dff-8b0",
+    "slowest_turn_s": 2.8,
+    "ended": "assistant-ended-call"
+   },
+   {
+    "id": "PUB-02",
+    "level": "medium",
+    "family": "Third party",
+    "pass": false,
+    "failed": [
+     "outcome ('not_reached', 'no_callback'), expected ('not_reached', 'callback')",
+     "callbacks [], expected [{'date': '2026-10-15', 'time': '17:00'}]"
+    ],
+    "call_id": "2e005127-7659-492c-a7aa-44bc7a03a8ec",
+    "tools": [
+     "close_call"
+    ],
+    "customer_id": "c_3aac50bc-d85",
+    "slowest_turn_s": 1.8,
+    "ended": "assistant-ended-call"
+   }
+  ]
+ ]
+}

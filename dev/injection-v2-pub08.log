@@ -1,0 +1,5 @@
+PASS PUB-08 medium Already paid   | verify > verify > get_account > close_call
+
+slowest agent turn per call: median 2 s, worst 2 s. Failed calls where the customer hung up: 0.
+
+1 / 1 passed (bank records and conversation checks). Last simulation 7b7aeac0-3f92-4946-9683-320d4eab9a12, status completed, 64 s.

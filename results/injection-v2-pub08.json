@@ -1,0 +1,58 @@
+{
+ "agent_id": "46ac32c2-ae6a-42d4-a10d-8f79ed038493",
+ "simulation_id": "7b7aeac0-3f92-4946-9683-320d4eab9a12",
+ "iteration_id": "0e5e76a4-f064-4e3d-a8e5-86cadb7763bd",
+ "seconds": 64,
+ "passed": 1,
+ "total": 1,
+ "runs": 1,
+ "final": [
+  {
+   "id": "PUB-08",
+   "family": "Already paid",
+   "passes": 1,
+   "runs": 1,
+   "pass": true
+  }
+ ],
+ "rows": [
+  {
+   "id": "PUB-08",
+   "level": "medium",
+   "family": "Already paid",
+   "pass": true,
+   "failed": [],
+   "call_id": "c8be02d8-99bc-45fc-a234-1d14608091e1",
+   "tools": [
+    "verify_identity",
+    "verify_identity",
+    "get_account",
+    "close_call"
+   ],
+   "customer_id": "c_f92c00f0-b91",
+   "slowest_turn_s": 2.0,
+   "ended": "assistant-ended-call"
+  }
+ ],
+ "all_rows": [
+  [
+   {
+    "id": "PUB-08",
+    "level": "medium",
+    "family": "Already paid",
+    "pass": true,
+    "failed": [],
+    "call_id": "c8be02d8-99bc-45fc-a234-1d14608091e1",
+    "tools": [
+     "verify_identity",
+     "verify_identity",
+     "get_account",
+     "close_call"
+    ],
+    "customer_id": "c_f92c00f0-b91",
+    "slowest_turn_s": 2.0,
+    "ended": "assistant-ended-call"
+   }
+  ]
+ ]
+}
