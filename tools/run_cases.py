@@ -32,7 +32,12 @@ STYLES = {
     "in_words": "HOW YOU TALK: you say every amount and every date in words and never in digits, like 'four hundred and fifty-five' and 'the twenty-second of October'. Postcodes, years and other codes you say digit by digit.",
 }
 
-def persona_for(case, ident, style=None):
+LANG_TR = ("LANGUAGE: you speak only Turkish. Everything you say is Turkish: dates and amounts the way a Turkish speaker says them, in words "
+           "(for example 'on dört Mart bin dokuz yüz seksen sekiz', 'haftaya cuma', 'üç yüz altmış beş lira'). When the caller reads something back and it matches what "
+           "you agreed, say 'Evet, onaylıyorum.' When the caller says goodbye, say 'Teşekkürler, hoşça kalın.' and nothing more. This replaces the English sentences in the rules above.")
+
+
+def persona_for(case, ident, style=None, lang="en"):
     v, i = case["variables"], ident["identity"]
     me = f"{v['first_name']} {v['last_name']}"
     if case["family"] == "Third party" or case.get("third_party"):
@@ -43,17 +48,18 @@ def persona_for(case, ident, style=None):
                "company_number": "Your company number is {}.", "founded_year": "The company was founded in {}."}
         who = f"You are {me}. " + " ".join(say.get(k, "Your " + k.replace("_", " ") + " is {}.").format(x) for k, x in i.items()) + " Give these only when asked, and give the wrong ones where the text below says so."
     style = style or case.get("style")
-    text = PERSONA.format(who=who, script=case["script"]) + ("\n\n" + STYLES[style] if style else "")
-    return {"name": case["id"] + " " + case["title"] + (f" [{style}]" if style else ""), "prompt": text, "successCriteria": "All of these are true:\n- " + "\n- ".join(case["checks"]), "tags": ["hackathon", "brief-" + case["brief"]]}
+    text = PERSONA.format(who=who, script=case["script"]) + ("\n\n" + STYLES[style] if style else "") + ("\n\n" + LANG_TR if lang == "tr" else "")
+    return {"name": case["id"] + " " + case["title"] + (f" [{style}]" if style else "") + (" [tr]" if lang == "tr" else ""), "prompt": text, "successCriteria": "All of these are true:\n- " + "\n- ".join(case["checks"]), "tags": ["hackathon", "brief-" + case["brief"]]}
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("agent_id"); ap.add_argument("--brief"); ap.add_argument("--cases", default=str(ROOT / "public-test-set.json")); ap.add_argument("--out"); ap.add_argument("--only"); ap.add_argument("--reps", type=int, default=1); ap.add_argument("--style", choices=sorted(STYLES)); ap.add_argument("--rerun-if-slow", type=int, default=0)
+    ap.add_argument("--lang", choices=["en", "tr"], default="en")
     a = ap.parse_args()
     cases = [c for c in json.load(open(a.cases)) if (not a.brief or c["brief"] == a.brief) and (not a.only or c["id"] in a.only.split(","))]
     ident = {c["id"]: {"identity": c["identity"]} for c in cases}
     store = ROOT / ".personas.json"; ids = json.load(open(store)) if store.exists() else {}
     # a persona is recreated whenever its text changes, so an edited case never runs with a stale customer
-    spec = {c["id"]: persona_for(c, ident[c["id"]], a.style) for c in cases}
+    spec = {c["id"]: persona_for(c, ident[c["id"]], a.style, a.lang) for c in cases}
     key = {i: i + ":" + hashlib.sha1(json.dumps(p, sort_keys=True).encode()).hexdigest()[:10] for i, p in spec.items()}
     new = [c for c in cases if key[c["id"]] not in ids]
     if new:

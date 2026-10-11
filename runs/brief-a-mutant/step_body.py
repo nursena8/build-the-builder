@@ -1,414 +1,507 @@
-import datetime as _dt
-SN = SPEC['sentences']
-HOL = SPEC['holidays']
-def S(k):
-    x = vars.get(k)
-    return '' if x is None else str(x)
-def I(k):
-    try: return int(float(vars.get(k) or 0))
-    except Exception: return 0
-def F(k):
-    try: return float(vars.get(k))
-    except Exception: return 0.0
-def money(x): return '%.2f' % float(x)
-def tl(): return S('title') + ' ' + S('last_name')
-def setv(**kw):
-    for k, v in kw.items(): vars[k] = v
-def talk(say, st=None):
-    vars['say'] = say; vars['next_node'] = 'talk'
-    if st: vars['st'] = st
+
+H = SPEC['holidays']
+WE = tuple(SPEC['weekend'])
+OUT = SPEC['outcomes']
+NAMES = dict(credit_card='credit card', personal_loan='personal loan', car_loan='car loan')
+
+def g(k, d=''):
+    v = vars.get(k)
+    return d if v is None else v
+
+def gi(k):
+    try:
+        return int(float(str(vars.get(k) or 0)))
+    except Exception:
+        return 0
+
+def gf(k):
+    try:
+        return float(str(vars.get(k) or 0).replace(',', ''))
+    except Exception:
+        return 0.0
+
+def money(x):
+    try:
+        x = float(x)
+    except Exception:
+        return str(x)
+    return ('%d' % x) if x == int(x) else ('%.2f' % x)
+
 def close(key, say):
-    o = SPEC['outcomes'][key]
-    vars['outcome'] = o[0]; vars['reason'] = o[1]
-    vars['closing_say'] = say + ' Thank you, goodbye.'; vars['next_node'] = 'end'; vars['st'] = 'closed'
-def transfer(key, queue, say):
-    vars['queue'] = queue; vars['tr_key'] = key; vars['tr_say'] = say; vars['next_node'] = 'transfer'; vars['st'] = 'tr_res'
-def lastask(): return S('ask')
-def ask(text, st=None):
-    vars['ask'] = text; talk(text if not S('prefix') else S('prefix') + ' ' + text, st)
-def okv(k): return S(k).lower() == 'true'
-
-now = parse_now(vars.get('now')); today = now.date()
-st = S('st') or 'open'
-intent = S('intent') or 'none'
-dw = S('date_words').strip(); tw = S('time_words').strip(); aw = S('amount_words').strip()
-vars['prefix'] = ''
-vars['next_node'] = ''
-
-def full(): return F('past_due')
-def floor(): return F('floor')
-def deadline(): return to_date(S('deadline'))
-def default_date(): return on_or_after_bd(today, HOL)
-
-def parse_amt(s):
-    m = re.search(r'\d[\d,]*(?:\.\d+)?', s or '')
-    if not m: return None
-    try: return float(m.group(0).replace(',', ''))
-    except Exception: return None
-
-def to_confirm(note=''):
-    amt = F('cur_amt'); d = to_date(S('cur_date'))
-    vars['ask'] = 'Do you confirm?'
-    talk((note + ' ' if note else '') + 'To confirm: ' + S('product_say') + ', ' + money(amt) + ' on ' + say_date(d) + '. Do you confirm?', 'confirm')
-
-def flat_refusal():
-    n = I('attempts_used') + 1; vars['attempts_used'] = n
-    vars['noans'] = 0
-    if n > I('attempts_total'):
-        return close('refused', 'I understand. I will not take a promise today.')
-    amt = floor() if I('full_too_much') else full()
-    dl = deadline()
-    if n == 1:
-        d = last_bd_of_week(today, HOL)
-        if d is None or d <= today: d = last_bd_of_week(today + _dt.timedelta(days=7), HOL)
-        if d > dl: d = dl
-    else:
-        amt = floor(); d = dl
-    key = money(amt) + '|' + d.isoformat()
-    if key in S('offered').split(','):
-        return close('refused', 'I understand. I will not take a promise today.')
-    vars['offered'] = (S('offered') + ',' + key).strip(',')
-    vars['cur_amt'] = amt; vars['cur_date'] = d.isoformat()
-    extra = ' The rest stays overdue.' if amt < full() - 0.004 else ''
-    ask('I understand. Could you pay ' + money(amt) + ' by ' + say_date(d) + '?' + extra, 'offer')
-
-def handle_proposal(pre=''):
-    amt = parse_amt(aw)
-    if amt is not None:
-        if amt > full() + 0.004: amt = full()
-        if amt < floor() - 0.004:
-            if I('floor_offered'): return flat_refusal()
-            vars['floor_offered'] = 1
-            vars['cur_amt'] = floor()
-            if not S('cur_date'): vars['cur_date'] = default_date().isoformat()
-            return ask(pre + ' That amount cannot be recorded. The lowest I can record is the minimum payment of ' + money(floor()) + ', and the rest stays overdue. Can you pay that on ' + say_date(to_date(S('cur_date'))) + '?', 'offer')
-        vars['cur_amt'] = amt
-    elif not S('cur_amt'):
-        vars['cur_amt'] = full()
-    note = pre
-    dl = deadline(); d = None
-    if dw:
-        d0, kind = resolve_phrase(dw, today, SPEC['next_week_mode'])
-        if d0 is not None:
-            ds = promise_date_state(d0, today, dl, HOL)
-            if ds == 'ok': d = d0
-            elif ds == 'not_business_day':
-                nb = on_or_after_bd(d0, HOL)
-                if nb <= dl:
-                    d = nb; note += ' ' + say_date(d0) + ' is not a business day. The next business day is ' + say_date(nb) + '.'
-                else:
-                    d = dl; note += ' The latest date I can record is ' + say_date(dl) + '.'
-            elif ds == 'after_deadline':
-                d = dl; note += ' The latest date I can record is ' + say_date(dl) + '.'
-            else:
-                d = default_date(); note += ' That day has already passed. The earliest is ' + say_date(d) + '.'
-    if d is None and S('cur_date') and not dw:
-        d = to_date(S('cur_date'))
-    if d is None:
-        if I('asked_exact') == 0:
-            vars['asked_exact'] = 1
-            return ask((pre + ' ' if pre else '') + 'On which exact day will you pay? Please give me the day and the date.', 'exact_day')
-        d = dl; note += ' Then I will propose the latest possible date, ' + say_date(dl) + '.'
-    vars['cur_date'] = d.isoformat()
-    vars['noans'] = 0
-    to_confirm(note.strip())
-
-def common_questions():
-    """robot / scam / unanswerable question: answer, then ask again. True when handled."""
-    if intent == 'robot_question': vars['prefix'] = SN['robot']
-    elif intent == 'scam_question': vars['prefix'] = SN['scam']
-    elif intent == 'other_question': vars['prefix'] = SN['no_info']
-    elif intent == 'terms_request': vars['prefix'] = 'I can only record a payment date and amount.'
-    else: return False
+    o, r = OUT.get(key, OUT['service_error'])
+    if vars.get('transfer_reason'):
+        o, r = OUT[vars['transfer_reason']]
+    elif key in ('refused', 'hardship', 'dispute', 'service_error') and vars.get('promises_made'):
+        o, r = OUT['promise']
+    vars['outcome'] = o
+    vars['reason'] = r
+    vars['say'] = (say + ' ' if say else '') + 'Thank you for your time. Goodbye.'
+    vars['action'] = 'end'
+    vars['st'] = 'closed'
     return True
 
-def reask_debt():
-    ask(lastask(), None)
+def talk(say):
+    vars['say'] = say
+    vars['action'] = 'talk'
+    return True
 
-def refusal_pre():
-    vars['refusals'] = I('refusals') + 1
-    if I('refusals') >= SPEC['id']['refusals_to_close']:
-        return close('declined', 'I understand.')
-    return None
+def transfer(key, say):
+    vars['transfer_reason'] = key
+    vars['queue'] = SPEC['queues'][key]
+    vars['outcome'], vars['reason'] = OUT[key]
+    vars['say'] = say + ' Thank you for your time. Goodbye.'
+    vars['action'] = 'transfer'
+    vars['st'] = 'closed'
+    return True
 
-# ---------------- states ----------------
-def do_open():
-    if intent == 'agree':
-        vars['ask'] = SN['q_dob']
-        return talk('Thank you. For security, I need to ask two short questions. ' + SN['q_dob'], 'dob')
-    if intent == 'other_person':
-        vars['ask'] = 'When can ' + tl() + ' be reached?'
-        return talk('When can ' + tl() + ' be reached?', 'third')
-    if intent == 'wrong_number': return close('wrong_number', 'I am sorry to have disturbed you.')
-    if intent == 'deceased':
-        o = SPEC['outcomes']['deceased']; vars['outcome'] = o[0]; vars['reason'] = o[1]
-        vars['closing_say'] = SN['deceased'] + ' Goodbye.'; vars['next_node'] = 'end'; vars['st'] = 'closed'; return
-    if intent == 'refuse_talk':
-        vars['refusals'] = I('refusals') + 1
-        if I('refusals') >= 2: return close('declined', 'I understand.')
-    vars['open_asks'] = I('open_asks') + 1
-    if I('open_asks') >= SPEC['id']['open_asks_max']:
-        return close('unclear', 'I could not confirm who I am speaking with.')
-    pre = ''
-    if intent == 'robot_question': pre = SN['robot']
-    elif intent == 'scam_question': pre = SN['scam']
-    elif intent == 'what_about': pre = 'I can explain once I have spoken with ' + tl() + '.'
-    elif intent == 'other_question': pre = SN['no_info']
-    q = 'Am I speaking with ' + tl() + '?'
-    vars['ask'] = q
-    talk((pre + ' ' if pre else '') + q, 'open')
+def ask_name():
+    return 'Am I speaking with ' + str(g('title')) + ' ' + str(g('last_name')) + '?'
 
-def do_third():
-    if intent == 'wrong_number': return close('wrong_number', 'I am sorry to have disturbed you.')
-    if intent == 'deceased':
-        o = SPEC['outcomes']['deceased']; vars['outcome'] = o[0]; vars['reason'] = o[1]
-        vars['closing_say'] = SN['deceased'] + ' Goodbye.'; vars['next_node'] = 'end'; vars['st'] = 'closed'; return
-    q = 'When can ' + tl() + ' be reached? Please give me a day and a time.'
-    d = None
-    if dw:
-        d, kind = resolve_phrase(dw, today, SPEC['next_week_mode'])
-    elif S('cb_date'): d = to_date(S('cb_date'))
-    t = hhmm_from_words(tw or dw)
-    if t:
-        h = int(t[:2])
-        if 1 <= h <= 6 and not re.search(r'\b(am|pm|morning|afternoon|evening|' + str(h) + r':)', (tw + ' ' + dw).lower()) and t[:2] == '%02d' % h:
-            t = '%02d:%s' % (h + 12, t[3:])
-    if d is None and t:
-        c = dt_combine(today, t)
-        d = today if (is_bd(today, HOL) and c > now) else add_bd(today, 1, HOL)
-    if d is not None: vars['cb_date'] = d.isoformat()
-    if d is None or not t:
-        vars['cb_unclear'] = I('cb_unclear') + 1
-        if I('cb_unclear') >= 4: return close('no_callback', 'I could not arrange a callback.')
-        vars['ask'] = q
-        return talk(('I am not able to discuss that. ' if intent in ('other_question','what_about','scam_question') else '') + q, 'third')
-    cs = callback_state(d, t, now, SPEC['callback']['start'], SPEC['callback']['end'], HOL)
-    if cs == 'ok':
-        vars['cb_time'] = t; vars['cb_date'] = d.isoformat(); vars['next_node'] = 'callback'; vars['st'] = 'cb_res'; return
-    vars['cb_bad'] = I('cb_bad') + 1
-    vars['cb_date'] = ''
-    if I('cb_bad') >= 2: return close('no_callback', 'I could not arrange a callback.')
-    vars['ask'] = 'I can only call back today or on the next business day, between 09:00 and 17:00. What other time suits?'
-    talk(vars['ask'], 'third')
+def product_words(p):
+    t = p.get('type')
+    if t == 'credit_card':
+        return 'credit card ending ' + str(p.get('card_last4') or '')
+    return NAMES.get(t, 'account')
 
-def dt_combine(d, t): return _dt.datetime(d.year, d.month, d.day, int(t[:2]), int(t[3:]))
+def cur():
+    return vars['products_list'][gi('pidx')]
 
-def merge_dob():
-    t = (S('dob_text') or '').lower()
-    if not t: return
-    mt = re.search(r'\b(\d{1,2})\s*[/.\-]\s*(\d{1,2})\s*[/.\-]\s*(\d{4}|\d{2})\b', t)
-    if mt:
-        a, b, c = int(mt.group(1)), int(mt.group(2)), int(mt.group(3))
-        if c < 100: c += 2000 if c < 30 else 1900
-        vars['dob_d'], vars['dob_m'], vars['dob_y'] = a, b, c; return
-    y = re.search(r'\b(1[89]\d{2}|20\d{2})\b', t)
-    if y: vars['dob_y'] = int(y.group(1)); t = t.replace(y.group(1), ' ')
-    for i, name in enumerate(['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']):
-        if re.search(r'\b' + name, t): vars['dob_m'] = i + 1; break
-    dd = re.search(r'\b(\d{1,2})(?:st|nd|rd|th)?\b', t)
-    if dd and 1 <= int(dd.group(1)) <= 31: vars['dob_d'] = int(dd.group(1))
-    else:
-        for w in sorted(_ORD, key=len, reverse=True):
-            if (' ' + w + ' ') in (' ' + t + ' '): vars['dob_d'] = _ORD[w]; break
+def readback():
+    p = cur()
+    d = to_date(g('c_date'))
+    vars['pst'] = 'confirm'
+    return talk('So that is your ' + product_words(p) + ', ' + money(g('c_amount')) + ', to be paid on ' + say_date(d) + '. ' + SPEC['confirm_q'])
 
-def id_refuse_or_question(qtext, stname):
-    if intent in ('refuse_talk', 'what_about'):
-        vars['refusals'] = I('refusals') + 1
-        if I('refusals') >= SPEC['id']['refusals_to_close']: return close('declined', 'I understand.')
-        vars['ask'] = qtext
-        return talk(SN['protect'] + ' ' + qtext, stname)
-    if intent == 'human': return False
-    pre = ''
-    if intent == 'robot_question': pre = SN['robot']
-    elif intent == 'scam_question': pre = SN['scam']
-    elif intent == 'other_question': pre = 'I can explain after the security check.'
-    else: return False
-    vars['ask'] = qtext
-    talk(pre + ' ' + qtext, stname); return True
-
-def verify_next(field, answer):
-    vars['v_field'] = field; vars['v_answer'] = answer
-    for k in ('v_ok', 'v_verified', 'v_left', 'v_all', 'v_hint', 'v_error'): vars[k] = 'none'
-    vars['next_node'] = 'verify'; vars['st'] = 'v_res'
-
-def do_dob():
-    if id_refuse_or_question(SN['q_dob'], 'dob') is not False: return
-    merge_dob()
-    d_, m_, y_ = I('dob_d'), I('dob_m'), I('dob_y')
-    if d_ and m_ and y_:
-        try:
-            dd = _dt.date(y_, m_, d_)
-            return verify_next('date_of_birth', dd.isoformat())
-        except Exception:
-            for k in ('dob_d', 'dob_m', 'dob_y'): vars[k] = 0
-            vars['ask'] = SN['q_dob']; return talk('That is not a valid date. ' + SN['q_dob'], 'dob')
-    if not (d_ or m_ or y_):
-        vars['ask'] = SN['q_dob']; return talk(SN['q_dob'], 'dob')
-    if not y_: q = 'And the year?'
-    elif not m_: q = 'And the month?'
-    else: q = 'And the day?'
-    vars['ask'] = q; talk(q, 'dob')
-
-def do_phone():
-    if id_refuse_or_question(SN['q_phone'], 'phone') is not False: return
-    new = re.sub(r'\D', '', S('digits_text'))
-    digs = S('digits') + new
-    if len(digs) > 4: digs = new if len(new) == 4 else digs[-4:] if len(new) == 0 else new[-4:]
-    vars['digits'] = digs
-    if len(digs) == 4: return verify_next('phone_last4', digs)
-    if len(digs) == 0:
-        vars['ask'] = SN['q_phone']; return talk(SN['q_phone'], 'phone')
-    q = 'I have ' + ' '.join(digs) + '. What are the remaining digits?'
-    vars['ask'] = q; talk(q, 'phone')
-
-def do_v_res():
-    field = S('v_field')
-    qtext = SN['q_dob'] if field == 'date_of_birth' else SN['q_phone']
-    stname = 'dob' if field == 'date_of_birth' else 'phone'
-    if not okv('v_ok'):
-        if I('v_retry') < 1:
-            vars['v_retry'] = I('v_retry') + 1; vars['next_node'] = 'verify'; return
-        vars['v_retry'] = 0
-        for k in ('dob_d', 'dob_m', 'dob_y'): vars[k] = 0
-        vars['digits'] = ''
-        vars['ask'] = qtext
-        return talk('I could not read that answer. ' + qtext, stname)
-    vars['v_retry'] = 0
-    if okv('v_verified'):
-        if field == 'phone_last4' or okv('v_all'):
-            vars['next_node'] = 'account'; vars['st'] = 'acct_res'; return
-        vars['ask'] = SN['q_phone']
-        return talk('Thank you. ' + SN['q_phone'], 'phone')
-    for k in ('dob_d', 'dob_m', 'dob_y'): vars[k] = 0
-    vars['digits'] = ''
-    if S('v_hint') == 'day_month_swapped':
-        vars['ask'] = 'Please say your date of birth again, with the month as a word.'
-        return talk(vars['ask'], 'dob')
-    vars['wrong_total'] = I('wrong_total') + 1
-    left = S('v_left')
-    try: left_n = int(float(left))
-    except Exception: left_n = None
-    if vars['wrong_total'] >= SPEC['id']['max_wrong'] or (left_n is not None and left_n <= 0):
-        return close('failed', SN['failed_id'])
-    vars['ask'] = qtext
-    talk('That does not match. ' + qtext, stname)
-
-def get_products():
-    p = vars.get('products')
-    if isinstance(p, str):
-        try: p = json.loads(p)
-        except Exception: p = None
-    if isinstance(p, list) and p and isinstance(p[0], str):
-        try: p = [json.loads(x) if isinstance(x, str) else x for x in p]
-        except Exception: p = None
-    return p if isinstance(p, list) else None
-
-def do_acct():
-    prods = get_products()
-    if not okv('a_ok') or not prods:
-        if I('acct_retry') < 1:
-            vars['acct_retry'] = 1; vars['next_node'] = 'account'; return
-        return close('service_error', 'I could not access your account information right now.')
-    p = prods[0]
+def start_product(prefix):
+    p = cur()
+    n = vars['now_dt']
+    today = n.date()
     b = band_for(p.get('days_late'), SPEC['bands']) or SPEC['bands'][-1]
-    dl = add_bd(today, b['deadline_bd'], HOL)
+    dl = add_bd(today, b['deadline_bd'], H, WE)
+    full = float(p.get('past_due') or 0)
     fl = floor_for(p, SPEC['floor_fields'])
-    typ = p.get('type')
-    if typ == 'credit_card': ps = 'credit card ending ' + str(p.get('card_last4'))
-    elif typ == 'personal_loan': ps = 'personal loan'
-    else: ps = 'car loan'
-    setv(p_id=p.get('product_id'), past_due=p.get('past_due'), floor=fl, deadline=dl.isoformat(), band=b['name'],
-         attempts_total=b['attempts'], product_say=ps, attempts_used=0, floor_offered=0, full_too_much=0, asked_exact=0, offered='', noans=0, cur_amt='', cur_date='')
-    q = 'Can you make this payment today?'
-    vars['ask'] = q
-    talk('I am calling from the collections team about a late payment on your ' + ps + '. The past-due amount is ' + money(p.get('past_due')) + ' and it is ' + str(p.get('days_late')) + ' days late. ' + q, 'ask_today')
+    try:
+        fl = float(fl)
+    except Exception:
+        fl = full
+    vars['band'] = b['name']
+    vars['attempts_max'] = b['attempts']
+    vars['attempts_used'] = 0
+    vars['deadline'] = dl.isoformat()
+    vars['full'] = full
+    vars['floor'] = fl
+    vars['too_much'] = 'no'
+    vars['floor_offered'] = 'no'
+    vars['below_offered'] = 'no'
+    vars['vague_asked'] = 'no'
+    vars['c_amount'] = full
+    vars['c_date'] = on_or_after_bd(today, H, WE).isoformat()
+    vars['pst'] = 'ask_today'
+    vars['promise_tries'] = 0
+    vars['facts'] = 'Product ' + product_words(p) + ', band ' + b['name'] + ', deadline ' + dl.isoformat() + ', floor ' + money(fl)
+    return talk(prefix + 'I am calling from the collections team about a late payment on your ' + product_words(p) + '. The past-due amount is ' + money(full) + ' and it is ' + str(p.get('days_late')) + ' days late. ' + SPEC['pay_today'])
 
-def do_debt():
-    global st
-    global intent
-    if st == 'human_check':
-        if intent in ('human', 'decline'):
-            return transfer('human', 'general', 'I will connect you with a colleague now.')
-        st = S('hold_st') or 'ask_today'; vars['st'] = st
-        if not (dw or aw) and intent in ('none', 'agree'):
-            return talk('Of course. ' + lastask(), st)
-    if intent == 'human':
-        if I('human_asked') == 0:
-            vars['human_asked'] = 1; vars['hold_st'] = st
-            return talk('Before I connect you, may I try to help you first?', 'human_check')
-        return transfer('human', 'general', 'I will connect you with a colleague now.')
-    if intent == 'paid': return close('paid', SN['paid'])
-    if intent == 'dispute': return close('dispute', 'I understand. I will not take a promise.')
-    if intent == 'restructure': return transfer('restructuring', 'restructuring', 'I will connect you with a colleague who can help with that.')
-    if intent == 'hardship' and not (dw or aw):
-        return talk('I am sorry to hear that. Would you like me to connect you with our customer support team?', 'support')
-    if st == 'support' and not (dw or aw):
-        if intent == 'agree': return transfer('support', 'support', 'I will connect you with our customer support team now.')
-        if intent in ('decline', 'refuse_talk'): return close('hardship', 'I understand.')
-        return talk('Would you like me to connect you with our customer support team?', 'support')
-    if common_questions() and not (dw or aw):
-        return reask_debt()
-    if intent == 'refuse_talk':
-        vars['refusals'] = I('refusals') + 1
-        if I('refusals') >= SPEC['refusals_to_close']: return close('refused', 'I understand. I will not take a promise today.')
-        return flat_refusal()
-    pre = 'I am sorry to hear that.' if intent == 'hardship' else ''
-    if st == 'confirm':
-        if dw or aw: return handle_proposal(pre)
-        if intent == 'agree': vars['next_node'] = 'promise'; vars['st'] = 'prom_res'; return
-        if intent == 'decline': return flat_refusal()
-        return reask_debt()
-    if dw or aw:
-        return handle_proposal(pre)
-    if intent == 'full_too_much':
-        vars['full_too_much'] = 1
-        if I('floor_offered'): return flat_refusal()
-        vars['floor_offered'] = 1
-        vars['cur_amt'] = floor(); vars['cur_date'] = default_date().isoformat()
-        return ask('I can record the minimum payment of ' + money(floor()) + '. The rest stays overdue. Can you pay that on ' + say_date(default_date()) + '?', 'offer')
-    if intent == 'agree':
-        if st == 'ask_today':
-            vars['cur_amt'] = full(); vars['cur_date'] = default_date().isoformat()
-            return to_confirm()
-        if st == 'offer':
-            return to_confirm()
-        if st == 'exact_day': return ask('On which exact day will you pay?', 'exact_day')
-    if intent == 'decline':
-        return flat_refusal()
-    vars['noans'] = I('noans') + 1
-    if I('noans') >= 2: return flat_refusal()
-    reask_debt()
+def next_product_or_close(prefix):
+    i = gi('pidx') + 1
+    if i < len(vars['products_list']):
+        vars['pidx'] = i
+        return start_product(prefix + 'There is also another product. ')
+    if vars.get('promises_made'):
+        return close('promise', prefix)
+    return close('refused', prefix)
 
-def do_tr_res():
-    key = S('tr_key')
-    say = S('tr_say')
-    close(key, say.replace(' now.', ' now.'))
+def attempt(prefix):
+    today = vars['now_dt'].date()
+    used = gi('attempts_used') + 1
+    vars['attempts_used'] = used
+    if used > gi('attempts_max'):
+        return next_product_or_close(prefix + 'I understand.')
+    if used == 1:
+        d = last_bd_of_week(today, H, WE)
+        if d is None or d <= today:
+            d = last_bd_of_week(today + datetime.timedelta(days=7), H, WE)
+        amt = gf('floor') if g('too_much') == 'yes' else gf('full')
+    else:
+        d = to_date(g('deadline'))
+        amt = gf('floor')
+        if g('floor_offered') == 'yes' and g('deadline_refused') == 'yes':
+            return next_product_or_close(prefix + 'I understand.')
+        vars['floor_offered'] = 'yes'
+        prefix = prefix + 'The rest would stay overdue. '
+    vars['c_amount'] = amt
+    vars['c_date'] = d.isoformat()
+    vars['pst'] = 'offer'
+    return talk(prefix + 'Could you pay ' + money(amt) + ' on ' + say_date(d) + '?')
+
+def refusal(prefix=''):
+    if g('pst') == 'offer' and g('c_date') == g('deadline'):
+        vars['deadline_refused'] = 'yes'
+    return attempt(prefix)
+
+def common_events(ev, verified):
+    # requests the brief answers in every stage (rules 4, 32, 39-45)
+    if ev == 'robot_q':
+        return 'answer', "I am Freya Bank's digital assistant. "
+    if ev == 'scam_q':
+        return 'answer', "You can verify this call by phoning Freya Bank's customer service number. "
+    if ev == 'human':
+        vars['human_asks'] = gi('human_asks') + 1
+        if gi('human_asks') >= 2:
+            transfer('human', 'I will transfer you to a colleague now.')
+            return 'done', ''
+        return 'answer', 'Is there anything I can help you with first? '
+    if ev == 'refuse_talk':
+        vars['refuse_talk'] = gi('refuse_talk') + 1
+        if gi('refuse_talk') >= 2:
+            if verified:
+                if gi('pidx') + 1 < len(vars.get('products_list') or []) and False:
+                    pass
+                close('refused', 'I understand.')
+            else:
+                close('declined', 'I understand.')
+            return 'done', ''
+        return 'answer', 'I understand. It will only take a moment. '
+    return None, ''
+
+def main():
+    vars['loops'] = gi('loops') + 1
+    if vars['loops'] > 60 and g('st') != 'closed':
+        return close('service_error', 'I am sorry, I cannot continue this call.')
+    n = parse_now(g('now')) or datetime.datetime(2026, 10, 14, 11, 0)
+    vars['now_dt'] = n
+    today = n.date()
+    st = g('st') or 'init'
+    ev = str(g('event') or 'none')
+    ans = str(g('answer') or 'none')
+    pend = g('pending')
+    vars['pending'] = ''
+    vars['action'] = 'talk'
+
+    if st == 'init':
+        vars['st'] = 'opening'
+        vars['name_asks'] = 1
+        return talk(SPEC['opening'] + ' ' + ask_name())
+
+    # ---------- tool results ----------
+    if pend == 'verify':
+        ok = str(g('verify_ok')).lower() == 'true'
+        ver = str(g('verify_verified')).lower()
+        allv = str(g('verify_all')).lower() == 'true'
+        hint = str(g('verify_hint'))
+        if not ok or ver not in ('true', 'false'):
+            if g('v_field') == 'date_of_birth' and ok is False and str(g('verify_error')):
+                vars['dob_d'] = 0; vars['dob_m'] = 0; vars['dob_y'] = 0
+            vars['vfail'] = gi('vfail') + 1
+            if gi('vfail') >= 3:
+                return close('service_error', 'There was a technical problem and I cannot continue.')
+            if g('v_field') == 'date_of_birth':
+                return talk('I could not read that date. Could you say your full date of birth, with the month as a word?')
+            return talk('There was a technical problem. Could you say the last four digits of your phone number again?')
+        if allv or (ver == 'true' and g('v_field') == 'phone_last4'):
+            vars['st'] = 'account'
+            vars['pending'] = 'account'
+            vars['action'] = 'account'
+            return True
+        if ver == 'true':
+            vars['st'] = 'phone'
+            vars['digits_sofar'] = ''
+            return talk('Thank you. What are the last four digits of the phone number we have on file?')
+        if hint == 'day_month_swapped':
+            vars['dob_d'] = 0; vars['dob_m'] = 0; vars['dob_y'] = 0
+            return talk('Could you say your date of birth again, with the month as a word, please?')
+        vars['wrong'] = gi('wrong') + 1
+        left = g('verify_left')
+        if gi('wrong') >= SPEC['max_wrong'] or str(left) == '0':
+            return close('failed', 'I am sorry, I could not verify your identity. Please use the Freya Bank mobile app or visit a branch.')
+        if g('v_field') == 'date_of_birth':
+            vars['dob_d'] = 0; vars['dob_m'] = 0; vars['dob_y'] = 0
+            return talk('That does not match our records. Could you say your date of birth again?')
+        vars['digits_sofar'] = ''
+        return talk('That does not match our records. Could you say the last four digits of your phone number again?')
+
+    if pend == 'account':
+        items = []
+        try:
+            items = items_from_keys(vars, 'products')
+        except Exception:
+            items = []
+        if not items:
+            try:
+                items = items_from_vars(vars, ['product_id', 'type', 'card_last4', 'past_due', 'days_late', 'minimum_payment', 'instalment_amount'])
+            except Exception:
+                items = []
+        items = [x for x in items if x.get('product_id')]
+        if not items:
+            vars['afail'] = gi('afail') + 1
+            if gi('afail') >= 2:
+                return close('service_error', 'I am sorry, there was a technical problem and I cannot see your account.')
+            vars['pending'] = 'account'
+            vars['action'] = 'account'
+            return True
+        vars['products_list'] = items
+        vars['pidx'] = 0
+        vars['st'] = 'promise'
+        return start_product('Thank you, you are verified. ')
+
+    if pend == 'promise':
+        ok = str(g('promise_ok')).lower() == 'true'
+        if ok:
+            vars['promises_made'] = gi('promises_made') + 1
+            return next_product_or_close('Your promise is recorded. ' + SPEC['sms'] + ' ')
+        vars['promise_tries'] = gi('promise_tries') + 1
+        if gi('promise_tries') >= 2:
+            if vars.get('promises_made'):
+                return next_product_or_close('I am sorry, I could not record this promise. ')
+            return close('service_error', 'I am sorry, I could not record the promise.')
+        vars['say'] = 'There was a technical problem, I will try once more.'
+        vars['pending'] = 'promise'
+        vars['action'] = 'promise'
+        return True
+
+    if pend == 'callback':
+        return close('callback', 'Thank you, we will call back then.')
+
+    # ---------- user turn ----------
+    verified = st in ('promise', 'account')
+    if ev == 'deceased' and not verified:
+        vars['say'] = SPEC['loss']
+        return close('deceased', SPEC['loss'])
+    if ev == 'wrong_number' and not verified:
+        return close('wrong_number', 'Sorry for the inconvenience.')
+
+    if st == 'opening':
+        if ev == 'not_customer' or (ans == 'no' and ev == 'none'):
+            vars['st'] = 'third_party'
+            return talk('When can ' + str(g('title')) + ' ' + str(g('last_name')) + ' be reached?')
+        kind, pre = common_events(ev, False)
+        if kind == 'done':
+            return True
+        if ans == 'yes' and kind is None:
+            vars['st'] = 'dob'
+            return talk('Thank you. Before we continue I need to ask two security questions. What is your date of birth?')
+        if ans == 'incomplete' and kind is None:
+            return talk(ask_name())
+        if ev == 'purpose_q':
+            pre = 'I am Freya Bank\'s digital assistant, and I can only explain once I know who I am speaking with. '
+        if gi('name_asks') >= 2:
+            return close('unclear', 'I am sorry, I could not confirm who I am speaking with.')
+        vars['name_asks'] = 2
+        return talk(pre + ask_name())
+
+    if st == 'third_party':
+        dt = str(g('day_text') or '').strip()
+        tt = str(g('time_text') or '').strip()
+        if ev == 'offer_pay':
+            return talk('I can only speak with ' + str(g('title')) + ' ' + str(g('last_name')) + '. When can they be reached?')
+        if not dt and not tt:
+            kind, pre = common_events(ev, False)
+            if kind == 'done':
+                return True
+            if ans == 'incomplete':
+                return talk('When can ' + str(g('title')) + ' ' + str(g('last_name')) + ' be reached?')
+            vars['cb_out'] = gi('cb_out') + 1
+            if gi('cb_out') >= 2:
+                return close('no_callback', 'Then we will not schedule a call.')
+            return talk(pre + 'Could you tell me a day and a time between 9 in the morning and 5 in the afternoon, today or the next business day?')
+        d = today
+        if dt:
+            d, kind = resolve_phrase(dt, today, SPEC['next_week_mode'])
+        hm = hhmm_from_words(tt or dt)
+        if d is None:
+            return talk('Which day exactly, today or the next business day?')
+        if not hm:
+            vars['cb_day_text'] = dt
+            return talk('At what time on ' + say_date(d) + '?')
+        stt = callback_state(d, hm, n, SPEC['callback_window'][0], SPEC['callback_window'][1], H, WE)
+        if stt == 'ok':
+            vars['cb_date'] = d.isoformat()
+            vars['cb_time'] = hm
+            vars['pending'] = 'callback'
+            vars['action'] = 'callback'
+            vars['say'] = 'We will call back on ' + say_date(d) + ' at ' + hm + '.'
+            return True
+        vars['cb_out'] = gi('cb_out') + 1
+        if gi('cb_out') >= 2:
+            return close('no_callback', 'I am sorry, I cannot schedule a call at that time.')
+        return talk('I am sorry, I can only arrange a call today or the next business day, between 09:00 and 17:00. Is there another time?')
+
+    if st in ('dob', 'phone'):
+        kind, pre = common_events(ev, False)
+        if kind == 'done':
+            return True
+        if ev in ('decline_security', 'purpose_q') or (ans == 'no' and kind is None and st == 'dob' and not gi('dob_y') and not gi('dob_d')):
+            vars['declines'] = gi('declines') + 1
+            if gi('declines') >= 2:
+                return close('declined', 'I understand.')
+            q = 'What is your date of birth?' if st == 'dob' else 'What are the last four digits of your phone number on file?'
+            return talk('These questions protect your account, and I can explain why I am calling once they are answered. ' + q)
+        if st == 'dob':
+            dd, mm, yy = gi('x_dob_day') or gi('dob_d'), gi('x_dob_month') or gi('dob_m'), gi('x_dob_year') or gi('dob_y')
+            vars['dob_d'], vars['dob_m'], vars['dob_y'] = dd, mm, yy
+            if dd and mm and yy:
+                try:
+                    if yy < 100:
+                        yy = yy + (1900 if yy > today.year % 100 else 2000)
+                    iso = datetime.date(yy, mm, dd).isoformat()
+                except Exception:
+                    vars['dob_d'] = 0; vars['dob_m'] = 0; vars['dob_y'] = 0
+                    return talk(pre + 'Sorry, I did not get a valid date. Could you say your full date of birth, with the month as a word?')
+                vars['v_field'] = 'date_of_birth'
+                vars['v_answer'] = iso
+                vars['pending'] = 'verify'
+                vars['action'] = 'verify'
+                return True
+            if not (dd or mm or yy):
+                return talk(pre + 'What is your date of birth?')
+            miss = 'the day' if not dd else ('the month' if not mm else 'the year')
+            return talk(pre + 'And ' + miss + '?')
+        digs = re.sub(r'\D', '', str(g('x_digits') or ''))
+        sofar = str(g('digits_sofar') or '') + digs
+        if len(sofar) > 4:
+            sofar = digs[-4:] if len(digs) >= 4 else sofar[-4:]
+        vars['digits_sofar'] = sofar
+        if len(sofar) == 4:
+            vars['v_field'] = 'phone_last4'
+            vars['v_answer'] = sofar
+            vars['pending'] = 'verify'
+            vars['action'] = 'verify'
+            vars['digits_sofar'] = ''
+            return True
+        if sofar:
+            return talk(pre + 'And the remaining ' + str(4 - len(sofar)) + ' digits?')
+        return talk(pre + 'What are the last four digits of the phone number we have on file?')
+
+    if st == 'promise':
+        p = cur()
+        deadline = to_date(g('deadline'))
+        if ev == 'hardship':
+            vars['st'] = 'hardship'
+            return talk('I am sorry to hear that. Would you like me to connect you with our customer support team?')
+        if ev == 'paid':
+            return close('paid', 'Thank you. Payments can take one business day to appear.')
+        if ev == 'dispute':
+            return close('dispute', 'I understand, I will not take a promise for this.')
+        if ev == 'restructuring':
+            return transfer('restructuring', 'I will transfer you to our team that handles payment plans.')
+        if ev == 'change_request' and vars.get('promises_made') and g('pst') != 'confirm':
+            return talk('A recorded promise cannot be changed in this call. You can change it in the mobile app. ' + ('Could you pay ' + money(g('c_amount')) + ' on ' + say_date(to_date(g('c_date'))) + '?'))
+        kind, pre = common_events(ev, True)
+        if kind == 'done':
+            return True
+        if ev == 'discount':
+            pre = 'I am sorry, I cannot offer that. '
+        if ev in ('other_q', 'purpose_q'):
+            pre = 'I am sorry, I do not have that information. '
+        amt = gf('x_amount')
+        dt = str(g('day_text') or '').strip()
+        changed = False
+        if amt > 0:
+            if amt > gf('full'):
+                amt = gf('full')
+            if amt < gf('floor') - 0.001:
+                if g('below_offered') == 'yes':
+                    return refusal(pre + 'I cannot record that amount. ')
+                vars['below_offered'] = 'yes'
+                vars['floor_offered'] = 'yes'
+                vars['c_amount'] = gf('floor')
+                vars['pst'] = 'offer'
+                return talk(pre + 'I cannot record that amount. The lowest amount I can record is ' + money(gf('floor')) + ', and the rest stays overdue. Could you pay ' + money(gf('floor')) + ' on ' + say_date(to_date(g('c_date'))) + '?')
+            vars['c_amount'] = amt
+            changed = True
+        if dt:
+            d, k = resolve_phrase(dt, today, SPEC['next_week_mode'])
+            if d is None:
+                if g('vague_asked') != 'yes':
+                    vars['vague_asked'] = 'yes'
+                    vars['pst'] = 'need_day'
+                    return talk(pre + 'Which exact day can you pay?')
+                vars['c_date'] = deadline.isoformat()
+                vars['pst'] = 'offer'
+                return talk(pre + 'The latest date I can record is ' + say_date(deadline) + '. Could you pay ' + money(g('c_amount')) + ' on ' + say_date(deadline) + '?')
+            s = promise_date_state(d, today, deadline, H, WE)
+            if s == 'past':
+                return talk(pre + 'That date has already passed. Which day from today can you pay?')
+            if s == 'not_business_day':
+                nd = on_or_after_bd(d, H, WE)
+                if nd <= deadline:
+                    vars['c_date'] = nd.isoformat()
+                    vars['pst'] = 'offer'
+                    return talk(pre + say_date(d) + ' is not a business day. Could you pay ' + money(g('c_amount')) + ' on ' + say_date(nd) + '?')
+                s = 'after_deadline'
+            if s == 'after_deadline':
+                vars['c_date'] = deadline.isoformat()
+                vars['pst'] = 'offer'
+                return talk(pre + 'The latest date I can record is ' + say_date(deadline) + '. Could you pay ' + money(g('c_amount')) + ' on ' + say_date(deadline) + '?')
+            vars['c_date'] = d.isoformat()
+            changed = True
+        if changed:
+            return readback()
+        if g('pst') == 'need_day' and ev == 'none' and ans != 'yes':
+            vars['c_date'] = deadline.isoformat()
+            vars['pst'] = 'offer'
+            return talk(pre + 'The latest date I can record is ' + say_date(deadline) + '. Could you pay ' + money(g('c_amount')) + ' on ' + say_date(deadline) + '?')
+        if ev == 'too_much':
+            vars['too_much'] = 'yes'
+            if g('floor_offered') != 'yes':
+                vars['floor_offered'] = 'yes'
+                vars['c_amount'] = gf('floor')
+                vars['pst'] = 'offer'
+                return talk(pre + 'I understand. You could pay ' + money(gf('floor')) + ' instead, and the rest stays overdue. Could you pay ' + money(gf('floor')) + ' on ' + say_date(to_date(g('c_date'))) + '?')
+            return refusal(pre)
+        if ans == 'yes':
+            if g('pst') == 'confirm':
+                vars['pending'] = 'promise'
+                vars['action'] = 'promise'
+                vars['p_product'] = p.get('product_id')
+                vars['p_amount'] = gf('c_amount')
+                vars['p_date'] = g('c_date')
+                vars['say'] = 'Thank you, one moment please.'
+                return True
+            return readback()
+        if ans == 'incomplete' or kind == 'answer' or ev in ('discount', 'other_q', 'purpose_q', 'change_request'):
+            if g('pst') == 'confirm':
+                return talk(pre + SPEC['confirm_q'])
+            if g('pst') == 'ask_today':
+                return talk(pre + SPEC['pay_today'])
+            return talk(pre + 'Could you pay ' + money(g('c_amount')) + ' on ' + say_date(to_date(g('c_date'))) + '?')
+        return refusal(pre)
+
+    if st == 'hardship':
+        dt = str(g('day_text') or '').strip()
+        if gf('x_amount') > 0 or dt:
+            vars['st'] = 'promise'
+            vars['pst'] = 'offer'
+            vars['action'] = 'talk'
+            return main_again()
+        if ans == 'yes' or ev == 'human':
+            return transfer('support', 'I will connect you with our customer support team.')
+        if ans == 'no' or ev in ('refuse_talk', 'none'):
+            return close('hardship', 'I understand. Take care.')
+        return talk('Would you like me to connect you with our customer support team?')
+
+    return close('service_error', 'I am sorry, I cannot continue this call.')
+
+def main_again():
+    vars['event'] = 'none'
+    vars['answer'] = 'none'
+    return main()
 
 try:
-    if st == 'open': do_open()
-    elif st == 'third': do_third()
-    elif st == 'dob': do_dob()
-    elif st == 'phone': do_phone()
-    elif st == 'v_res': do_v_res()
-    elif st == 'acct_res': do_acct()
-    elif st == 'prom_res':
-        if okv('pr_ok'):
-            close('promise', 'Your promise is recorded. ' + SN['promise_text'])
-        elif I('prom_fail') < 1:
-            vars['prom_fail'] = 1; vars['next_node'] = 'promise'
-        else:
-            close('service_error', 'I could not record your promise.')
-    elif st == 'cb_res':
-        if okv('cb_ok'):
-            close('callback', 'I have noted a callback on ' + say_date(to_date(S('cb_date'))) + ' at ' + S('cb_time') + '.')
-        elif I('cb_fail') < 1:
-            vars['cb_fail'] = 1; vars['next_node'] = 'callback'
-        else:
-            close('no_callback', 'I could not book the callback.')
-    elif st == 'tr_res': do_tr_res()
-    elif st == 'closed': vars['next_node'] = 'end'
-    else: do_debt()
-    if not S('next_node'): vars['next_node'] = 'talk'
+    main()
 except Exception as e:
-    vars['say'] = 'Sorry, could you say that again?'; vars['next_node'] = 'talk'
-vars['intent'] = 'none'; vars['date_words'] = ''; vars['time_words'] = ''; vars['amount_words'] = ''; vars['dob_text'] = ''; vars['digits_text'] = ''
+    vars['err'] = str(e)[:200]
+    if not vars.get('say'):
+        vars['say'] = 'Sorry, could you say that again?'
+    vars['action'] = vars.get('action') or 'talk'
+vars['now_dt'] = ''
+vars['event'] = 'none'
+vars['answer'] = 'none'
+vars['day_text'] = ''
+vars['time_text'] = ''
+vars['x_digits'] = ''
+vars['x_amount'] = 0
+vars['x_dob_day'] = 0
+vars['x_dob_month'] = 0
+vars['x_dob_year'] = 0
+if vars.get('outcome'):
+    vars['outcome_final'] = vars['outcome']

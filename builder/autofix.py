@@ -8,8 +8,14 @@ What it repairs (each one was seen in a real call transcript):
      to its excluded_nodes (otherwise one customer sentence is counted twice by a counter node).
   2. An extraction variable with a fixed list of values rejects any other value written by code (for example '').
      Add the neutral value 'none' to the list and write 'none' instead.
+  4. The tool that runs at the end of the call gets maxRetries 2 (a failed close wrote nothing; the tool API says it may be repeated).
+  3. A tool that runs at the end of the call is filled in by the model, which writes free text into `reason`.
+     Give it pre_process_code that sets its body fields from the code variables (see lib/snippets.close_pre_process).
 """
-import copy, json, re, sys
+import copy, json, pathlib, re, sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / "lib"))
+import snippets
 
 NEUTRAL = "none"
 WRITE = re.compile(r"(vars\[['\"](\w+)['\"]\]\s*=\s*)(['\"])(.*?)\3")
@@ -60,6 +66,22 @@ def fix(d):
                     return m.group(1) + m.group(3) + NEUTRAL + m.group(3)
                 return m.group(0)
             c["default"] = WRITE.sub(rep, c["default"])
+    # 3. closing tool
+    for t in wf.get("tools") or []:
+        fn = t.get("function") or {}
+        if not (t.get("config") or {}).get("alwaysRunsAt") or not str(fn.get("handler", "")).endswith("api_call"): continue
+        body = ((((fn.get("parameters") or {}).get("properties") or {}).get("body") or {}).get("properties")) or {}
+        names = {}
+        for f in ("outcome", "reason", "customer_id"):
+            m = re.fullmatch(r"\{\{\s*([\w.]+)\s*\}\}", str((body.get(f) or {}).get("default") or ""))
+            if m: names[f] = m.group(1)
+        if len(names) == 3 and "b['outcome'] =" not in (t.get("pre_process_code") or ""):
+            t["pre_process_code"] = snippets.close_pre_process(outcome_var=names["outcome"], reason_var=names["reason"], customer_var=names["customer_id"])
+            changes.append(f"{fn.get('name')}: pre_process_code sets outcome, reason, customer_id from the variables {sorted(names.values())}")
+    for t in wf.get("tools") or []:
+        if (t.get("config") or {}).get("alwaysRunsAt") and str((t.get("function") or {}).get("handler", "")).endswith("api_call") \
+                and int((t.get("config") or {}).get("maxRetries") or 0) < 2:
+            t.setdefault("config", {})["maxRetries"] = 2; changes.append(f"{(t.get('function') or {}).get('name')}: maxRetries 2 (a failed close is safe to repeat)")
     return ({**d, "workflow": wf} if wrapped else wf), changes
 
 

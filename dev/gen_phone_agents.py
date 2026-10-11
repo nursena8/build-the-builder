@@ -558,7 +558,7 @@ def build(multi):
     nodes["prepare"] = code_node("prepare", PREPARE, "opening")
     nodes["opening"] = conv(
         "opening", OPENING_TASK, tools=[TOOL_TRANSFER],
-        on_enter={"type": "tts", "text": "Hello, I am a digital assistant calling from Freya Bank, and this call is recorded. Am I speaking with {{title}} {{last_name}}?"},
+        on_enter={"type": "tts", "text": "Hello, I am a digital assistant calling from Freya Bank, and we are recording this call. Am I speaking with {{title}} {{last_name}}?"},
         extraction=[{"name": "line_status", "type": "string", "enum_values": ["confirmed", "other_person", "wrong_number", "deceased", "none"], "min_confidence": 0.6,
                      "description": "Who is on the line, from the person's LAST message. confirmed: they clearly say yes, that's me, speaking, or say the asked-for name is their own. other_person: they say they are someone else (a relative, partner, colleague) or that the asked-for person is not there or not available. wrong_number: they say the number does not belong to the asked-for person or they do not know that person. deceased: they say the asked-for person has died. none: anything else, for example hello, go ahead, who is this, a question, or unclear."}],
         transitions=[

@@ -1,0 +1,11 @@
+{"base_url": "https://freya-bank-mock.freyavoice.workers.dev/v1",
+ "holidays": ["2026-10-26","2026-11-11","2026-11-26","2026-12-25","2027-01-01"],
+ "bands": [{"min":1,"max":7,"name":"early","deadline_bd":12,"attempts":1,"rule":18},{"min":8,"max":45,"name":"late","deadline_bd":7,"attempts":2,"rule":18}],
+ "callback_start": "10:00", "callback_end": "18:00", "callback_rule": "6 changed by 03-Duyuru.md (19:00 -> 18:00); 06-Sorular S2 still says 19:00, the announcement wins",
+ "floor_fields": {"credit_card":"minimum_payment","personal_loan":"instalment_amount","car_loan":"instalment_amount"},
+ "product_names": {"credit_card":"{last4} ile biten kredi kartı","personal_loan":"bireysel kredi","car_loan":"taşıt kredisi"},
+ "product_names_loc": {"credit_card":"{last4} ile biten kredi kartınızda","personal_loan":"bireysel kredinizde","car_loan":"taşıt kredinizde","rule":17},
+ "titles": {"Mr":"Bay","Ms":"Hanım"},
+ "max_wrong": 3, "loop_limit": 40,
+ "outcomes": {"promise":["promise",""],"paid":["paid",""],"restructuring":["transferred","restructuring"],"human":["transferred","human"],"support":["transferred","support"],"refused":["no_promise","refused"],"hardship":["no_promise","hardship"],"dispute":["no_promise","dispute"],"service_error":["no_promise","service_error"],"failed":["not_verified","failed"],"declined":["not_verified","declined"],"callback":["not_reached","callback"],"no_callback":["not_reached","no_callback"],"wrong_number":["not_reached","wrong_number"],"deceased":["not_reached","deceased"],"unclear":["not_reached","unclear"]}
+}

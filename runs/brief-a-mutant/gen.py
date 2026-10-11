@@ -1,99 +1,176 @@
-import json, sys
+import json, sys, pathlib
 sys.path.insert(0, "lib")
+import snippets
 from snippets import code
-SPEC = json.load(open("out/spec.json"))
-API = json.load(open("inputs/openapi.json"))
-BASE = API["servers"][0]["url"]
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 SLOT = "brief-a-mutant"
-CSPEC = json.loads(json.dumps(SPEC)); CSPEC["sentences"].pop("opening"); CSPEC.pop("unclear_notes")
-BODY = open("out/step_body.py").read()
-assert "{{" not in BODY and "}}" not in BODY
-HDR = {"type": "object", "properties": {"Content-Type": {"type": "string", "default": "application/json"}}}
+spec_raw = json.load(open(ROOT / "out/spec.json"))
+SPEC = {k: v["value"] for k, v in spec_raw.items()}
+api = json.load(open(ROOT / "inputs/openapi.json"))
+BASE = api["servers"][0]["url"].rstrip("/")
+PATHS = api["paths"]
 
-def always(t): return {"target_node": t, "description": "always", "condition": {"operator": "always"}}
-def eq(var, val): return {"logic": "or", "conditions": [{"variable": var, "operator": "equals", "operand": val}]}
 
-def api_body(path, fields):
-    schema = API["paths"]["/" + path]["post"]["requestBody"]["content"]["application/json"]["schema"]["properties"]
-    props = {}
-    for f, default in fields.items():
-        leaf = {k: v for k, v in schema[f].items() if k in ("type", "enum", "description")}
-        leaf["default"] = default
-        props[f] = leaf
-    return {"type": "object", "properties": props, "required": []}
+def url(op):
+    assert "/" + op in PATHS
+    return BASE + "/" + op
 
-def api_node(name, path, fields, mapping):
-    return {"name": name, "node_type": "api_request", "passthrough": True, "passthrough_default_transition": "step",
-            "on_enter": {"type": "silent"}, "disable_inactivity_monitor": True,
-            "pre_actions": [{"type": "function", "config": {"timeoutMs": 12000, "maxRetries": 0},
-                "function": {"name": path, "handler": "__function__:api_call", "description": path,
-                    "parameters": {"type": "object", "properties": {"url": {"type": "string", "default": BASE + "/" + path},
-                        "method": {"type": "string", "default": "POST"}, "headers": HDR, "body": api_body(path, fields)}}}}],
-            "response_mapping": [{"path": "data." + p, "variable": v} for p, v in mapping],
-            "transitions": [always("step")]}
 
-INTENTS = [
- ("agree", "clear yes: yes, that's me, speaking, I confirm, I can pay, okay"),
- ("decline", "a plain no or refusal of the payment or of the offer, with no date and no amount"),
- ("other_person", "someone other than the customer answers (not him or her, a relative, colleague, 'he is not here')"),
- ("wrong_number", "says the number does not belong to the customer / wrong number"),
- ("deceased", "says the customer has died"),
- ("robot_question", "asks whether the speaker is a robot, machine or AI"),
- ("scam_question", "asks whether this is a scam or fraud"),
- ("what_about", "asks who is calling or what the call is about or why, instead of answering"),
- ("other_question", "asks any other question"),
- ("human", "asks for a human, a person or an agent"),
- ("refuse_talk", "says they do not want to talk, are not interested, or refuses to answer the security questions"),
- ("paid", "says they already paid this amount"),
- ("dispute", "says the debt is not theirs, they never had the product, or it was closed or paid off in the past"),
- ("restructure", "asks for a new payment plan or lower instalments"),
- ("hardship", "mentions illness, a death in the family or job loss"),
- ("full_too_much", "says the full amount is too much but names no amount"),
- ("terms_request", "asks for a discount, a waiver, a lower price or any other term"),
- ("none", "none of the above, a greeting such as hello, or unclear")]
-SCHEMA = [
- {"name": "intent", "type": "string", "enum_values": [i for i, _ in INTENTS], "min_confidence": 0.6,
-  "description": "What the customer's last message is. Values: " + "; ".join(i + " = " + d for i, d in INTENTS) + ". Use none when unsure."},
- {"name": "date_words", "type": "string", "min_confidence": 0.6, "description": "The day the customer names for a payment or a callback, in their own words (tomorrow, the 20th, next Friday, end of the month). Empty if none."},
- {"name": "time_words", "type": "string", "min_confidence": 0.6, "description": "A clock time the customer names, in their words (eleven in the morning, 3 pm). Empty if none."},
- {"name": "amount_words", "type": "string", "min_confidence": 0.6, "description": "An amount of money the customer says they can pay, digits only, e.g. 250 or 250.50. Empty if none."},
- {"name": "dob_text", "type": "string", "min_confidence": 0.6, "description": "A date of birth or a part of it, written with digits and the month name as the customer said it, e.g. '14 March 1985', 'March' or '1985'. Numbers only like 03/04/1985 stay as said. Empty if none."},
- {"name": "digits_text", "type": "string", "min_confidence": 0.6, "description": "Digits the customer says as phone digits, as digits only. Empty if none."}]
+def props(op):
+    return PATHS["/" + op]["post"]["requestBody"]["content"]["application/json"]["schema"]["properties"]
 
-def conv(name, on_enter, task):
-    return {"name": name, "node_type": "conversation", "on_enter": on_enter, "task_message": task,
-            "extraction_schema": SCHEMA, "max_node_turns": 6, "max_turn_transition": "step", "transitions": [always("step")]}
 
-TASK = "Say the following to the customer in one or two short sentences. Keep every number, date, name and quoted sentence exactly as written. Add nothing else. Do not call any tool.\nText: {{say}}"
-nodes = {}
-nodes["opening"] = conv("opening", {"type": "tts", "text": SPEC["sentences"]["opening"]},
-                        "Wait for the customer's answer. Do not call any tool.")
-nodes["talk"] = conv("talk", {"type": "llm"}, TASK)
-nodes["talk"]["max_node_turns"] = 6
-nodes["step"] = {"name": "step", "node_type": "code", "passthrough": True, "passthrough_default_transition": "talk",
-    "on_enter": {"type": "silent"}, "disable_inactivity_monitor": True,
-    "pre_actions": [{"type": "function", "function": {"name": "code_exec", "handler": "__function__:code_exec",
-        "parameters": {"type": "object", "properties": {"code": {"type": "string", "default": code(BODY, CSPEC)}, "timeout_ms": {"type": "number", "default": 10000}}}}}],
-    "transitions": [{"target_node": t, "description": n, "condition": eq("next_node", n)} for n, t in
-        [("verify", "verify_api"), ("account", "account_api"), ("promise", "promise_api"), ("callback", "callback_api"), ("transfer", "transfer_api"), ("end", "goodbye")]] + [always("talk")]}
-CID = "{{customer_id}}"
-nodes["verify_api"] = api_node("verify_api", "verify_identity", {"customer_id": CID, "field": "{{v_field}}", "answer": "{{v_answer}}"},
-    [("ok", "v_ok"), ("verified", "v_verified"), ("wrong_answers_left", "v_left"), ("all_verified", "v_all"), ("hint", "v_hint")])
-nodes["account_api"] = api_node("account_api", "get_account", {"customer_id": CID}, [("ok", "a_ok"), ("products", "products")])
-nodes["promise_api"] = api_node("promise_api", "create_promise", {"customer_id": CID, "product_id": "{{p_id}}", "amount": "{{cur_amt}}", "date": "{{cur_date}}"}, [("ok", "pr_ok")])
-nodes["callback_api"] = api_node("callback_api", "schedule_callback", {"customer_id": CID, "date": "{{cb_date}}", "time": "{{cb_time}}"}, [("ok", "cb_ok")])
-nodes["transfer_api"] = api_node("transfer_api", "transfer_to_agent", {"customer_id": CID, "queue": "{{queue}}"}, [("ok", "tr_ok")])
-# api_node default resets for stale results are written by code; account/promise/callback results reset here via names
-nodes["goodbye"] = {"name": "goodbye", "node_type": "end_call", "on_enter": {"type": "silent"}, "disable_inactivity_monitor": True, "transitions": [],
-    "terminal": {"type": "function", "function": {"name": "call_end", "handler": "__function__:end_call",
-        "parameters": {"type": "object", "properties": {"message_mode": {"type": "string", "default": "custom"}, "spoken_message": {"type": "string", "default": "{{closing_say}}"}}}}}}
-close_tool = {"type": "function", "config": {"timeoutMs": 12000, "maxRetries": 0, "alwaysRunsAt": ["end_of_call"]},
-  "function": {"name": "close_call", "handler": "__function__:api_call", "description": "Record how the call ended.",
-    "parameters": {"type": "object", "properties": {"url": {"type": "string", "default": BASE + "/close_call"}, "method": {"type": "string", "default": "POST"}, "headers": HDR,
-      "body": api_body("close_call", {"customer_id": CID, "outcome": "{{outcome}}", "reason": "{{reason}}"})}}},
-  "pre_process_code": "try:\n    b = config.get('body')\n    if isinstance(b, dict) and b.get('outcome') in ('promise', 'paid'):\n        b.pop('reason', None)\nexcept Exception:\n    pass\n"}
-wf = {"initial_node": "opening",
-  "system_prompt": "You are the digital assistant of Freya Bank on a phone call. Speak English, one or two short sentences per turn. Say only what you are told to say. Never offer a discount, waiver, instalment plan or any term. A recorded promise cannot be changed in this call; the customer can change it in the mobile app.",
-  "nodes": nodes, "global_nodes": {}, "tools": [close_tool],
-  "test_variables": {"customer_id": "c_test", "first_name": "Daniel", "last_name": "Reyes", "title": "Mr", "now": "2026-10-14T11:00"}}
-json.dump(wf, open("out/%s.workflow.json" % SLOT, "w"), indent=1)
+def api_fn(name, op, body):
+    p = props(op)
+    bp = {}
+    for k, default in body.items():
+        leaf = {"type": p[k].get("type", "string"), "default": default}
+        if "enum" in p[k]: leaf["enum"] = p[k]["enum"]
+        bp[k] = leaf
+    return {"type": "function", "config": {"timeoutMs": 12000, "maxRetries": 0},
+            "function": {"name": name, "handler": "__function__:api_call", "description": PATHS["/" + op]["post"]["summary"],
+                         "parameters": {"type": "object", "properties": {
+                             "url": {"type": "string", "default": url(op)},
+                             "method": {"type": "string", "default": "POST"},
+                             "headers": {"type": "object", "properties": {"Content-Type": {"type": "string", "default": "application/json"}}},
+                             "body": {"type": "object", "properties": bp, "required": list(bp.keys())}}}}}
+
+
+def code_fn(src):
+    while "}}" in src or "{{" in src:
+        src = src.replace("}}", "} }").replace("{{", "{ {")
+    assert "{{" not in src and "}}" not in src, "braces in code"
+    return {"type": "function", "function": {"name": "code_exec", "handler": "__function__:code_exec",
+            "parameters": {"type": "object", "properties": {"code": {"type": "string", "default": src}, "timeout_ms": {"type": "number", "default": 20000}}}}}
+
+
+def always(t):
+    return {"target_node": t, "description": "always", "condition": {"operator": "always"}}
+
+
+def eq(var, val, t):
+    return {"target_node": t, "description": "%s is %s" % (var, val),
+            "condition": {"logic": "or", "conditions": [{"variable": var, "operator": "equals", "operand": val}]}}
+
+
+def passnode(name, ntype, pre, nxt, mapping=None, transitions=None):
+    n = {"name": name, "node_type": ntype, "passthrough": True, "passthrough_default_transition": nxt,
+         "on_enter": {"type": "silent"}, "disable_inactivity_monitor": True, "pre_actions": pre,
+         "transitions": (transitions or []) + [always(nxt)]}
+    if mapping: n["response_mapping"] = mapping
+    return n
+
+
+S = SPEC["say"]
+EXTR_NONE = ["who", "question", "intent", "answer", "date_words", "time_words", "amount_said", "dob_day", "dob_month", "dob_year", "phone_digits"]
+
+init_body = (
+    "vars['st'] = 'who'\nvars['who_asks'] = 1\nvars['loops'] = 0\nvars['pending'] = 'none'\nvars['next'] = 'talk'\n"
+    "vars['outcome'] = ''\nvars['reason'] = ''\nvars['promised'] = 'no'\nvars['bye'] = %r\n"
+    "vars['say'] = %r + ' Am I speaking with ' + str(vars.get('title') or '') + ' ' + str(vars.get('last_name') or '') + '?'\n"
+    "for k in %r:\n    vars[k] = 'none'\n" % (S["goodbye"], S["opening"], EXTR_NONE))
+
+brain_body = (ROOT / "out/brain.py").read_text()
+step_spec = {k: SPEC[k] for k in ["holidays", "weekend", "bands", "floor_fields", "next_week_mode", "callback_window",
+                                  "callback_out_of_window_asks", "who_asks_max", "wrong_answers_max", "decline_max",
+                                  "stop_talking_max", "human_asks_before_transfer", "tool_retries", "queues", "outcomes", "say"]}
+
+
+def ex(name, desc, enum=None):
+    e = {"name": name, "type": "string", "description": desc, "min_confidence": 0.5}
+    if enum: e["enum_values"] = enum
+    return e
+
+
+extraction = [
+    ex("who", "Only from the customer's LAST message, about who is on the line. confirmed: says yes, that's me, speaking, or says the customer's own name. "
+              "not_customer: says they are someone else (a relative, a partner, a colleague) or that the customer is not there/available. unclear: hello, go ahead, who is this, or anything else. none: not about who is speaking.",
+       ["none", "confirmed", "not_customer", "unclear"]),
+    ex("question", "A question in the LAST message. robot: asks if this is a robot or AI. scam: asks if this is a scam or a real call. "
+                   "purpose: asks what the call is about or why we call. cannot_answer: any other question about facts (fees, interest, balance history, why the amount is this). none: no question.",
+       ["none", "robot", "scam", "purpose", "cannot_answer"]),
+    ex("intent", "What the LAST message does. paid: says they already paid this past-due amount. dispute: says the debt is not theirs, they never had the product, or it was closed or paid off in the past. "
+                 "plan: explicitly asks for a new payment plan, instalments or lower instalments (naming a date is not a plan). hardship: mentions illness, a death in the family or job loss. "
+                 "too_much: says the full amount is too much or they cannot afford all of it. discount: asks for a discount, waiver or lower price. human: asks for a human, a person, an agent. "
+                 "stop_talking: says they do not want to talk / end this call. refuse: refuses to pay or refuses to answer the security question, with no date and no amount. "
+                 "vague: gives a vague period (next week, end of the month, when my salary comes) without an exact day. accept: agrees to what was proposed. "
+                 "wrong_number: says this number does not belong to the customer. deceased: says the customer has died. change_promise: wants to change or cancel a recorded promise. "
+                 "incomplete: the message stops mid-sentence. other: anything else. none: nothing of these.",
+       ["none", "paid", "dispute", "plan", "hardship", "too_much", "discount", "human", "stop_talking", "refuse", "vague", "accept", "wrong_number", "deceased", "change_promise", "incomplete", "other"]),
+    ex("answer", "yes or no answer in the LAST message to the agent's last yes/no question (for example 'Can you make this payment today?', 'Do you confirm?', 'Could you pay X on Y?'). none if neither.",
+       ["none", "yes", "no"]),
+    ex("date_words", "The day the customer names in the LAST message as a future payment or callback day, copied in their own words (for example 'tomorrow', 'next Friday', 'this Friday', 'the 20th', 'October 23'). "
+                     "Write none when no day is named, and none for a past payment date."),
+    ex("time_words", "A clock time the customer names in the LAST message for a callback, in their words (for example 'eleven in the morning', '3 pm', '15:30'). none if no time."),
+    ex("amount_said", "An amount of money the customer says in the LAST message they can pay, as a plain number like 120 or 75.50. none if no amount."),
+    ex("dob_day", "Day of month of the customer's date of birth said in the LAST message, as digits (1-31). A date said only in numbers is day, then month, then year. none if not said."),
+    ex("dob_month", "Month of the customer's date of birth said in the LAST message, as a number 1-12 (March is 3). A date said only in numbers is day, then month, then year. none if not said."),
+    ex("dob_year", "Year of the customer's date of birth said in the LAST message, as four digits. none if not said."),
+    ex("phone_digits", "Digits of the phone number the customer says in the LAST message, digits only (for example 4821). none if no digits."),
+]
+
+talk = {
+    "name": "talk", "node_type": "conversation",
+    "on_enter": {"type": "tts", "text": "{{say}}"},
+    "task_message": "Say exactly this text: \"{{say}}\"\nSay exactly this text. Never promise a transfer, a callback or any other action that the text does not state. Do not call any tool.",
+    "extraction_schema": extraction,
+    "tools": [],
+    "max_node_turns": 3, "max_turn_transition": "step",
+    "transitions": [always("step")],
+}
+
+step_tr = [eq("next", "end", "end"), eq("next", "verify_identity", "verify_identity"), eq("next", "get_account", "get_account"),
+           eq("next", "create_promise", "create_promise"), eq("next", "schedule_callback", "schedule_callback"), eq("next", "transfer_to_agent", "transfer_to_agent")]
+
+nodes = {
+    "init": passnode("init", "code", [code_fn(init_body)], "talk"),
+    "talk": talk,
+    "step": passnode("step", "code", [code_fn(code(brain_body, step_spec))], "talk", transitions=step_tr),
+    "verify_identity": passnode("verify_identity", "api_request",
+                           [api_fn("verify_identity", "verify_identity", {"customer_id": "{{customer_id}}", "field": "{{v_field}}", "answer": "{{v_answer}}"})], "step",
+                           mapping=[{"path": "data.ok", "variable": "v_ok"}, {"path": "data.verified", "variable": "v_verified"},
+                                    {"path": "data.all_verified", "variable": "v_all"}, {"path": "data.hint", "variable": "v_hint"},
+                                    {"path": "data.wrong_answers_left", "variable": "v_left"}, {"path": "data.error", "variable": "v_error"}]),
+    "get_account": passnode("get_account", "api_request", [api_fn("get_account", "get_account", {"customer_id": "{{customer_id}}"})], "step",
+                            mapping=[{"path": "data.ok", "variable": "a_ok"}] + [
+                                {"path": "data.products.0.%s" % f, "variable": "p0_%s" % f} for f in
+                                ["product_id", "type", "card_last4", "past_due", "days_late", "minimum_payment", "instalment_amount"]]),
+    "create_promise": passnode("create_promise", "api_request",
+                            [api_fn("create_promise", "create_promise", {"customer_id": "{{customer_id}}", "product_id": "{{product_id}}", "amount": "{{p_amount}}", "date": "{{p_date}}"})], "step",
+                            mapping=[{"path": "data.ok", "variable": "pr_ok"}]),
+    "schedule_callback": passnode("schedule_callback", "api_request",
+                             [api_fn("schedule_callback", "schedule_callback", {"customer_id": "{{customer_id}}", "date": "{{cb_date}}", "time": "{{cb_time}}"})], "step",
+                             mapping=[{"path": "data.ok", "variable": "cb_ok"}]),
+    "transfer_to_agent": passnode("transfer_to_agent", "api_request",
+                             [api_fn("transfer_to_agent", "transfer_to_agent", {"customer_id": "{{customer_id}}", "queue": "{{t_queue}}"})], "step",
+                             mapping=[{"path": "data.ok", "variable": "tr_ok"}]),
+    "end": {"name": "end", "node_type": "end_call", "on_enter": {"type": "silent"}, "disable_inactivity_monitor": True, "transitions": [],
+            "terminal": {"type": "function", "function": {"name": "call_closed", "handler": "__function__:end_call",
+                         "parameters": {"type": "object", "properties": {"message_mode": {"type": "string", "default": "custom"},
+                                                                         "spoken_message": {"type": "string", "default": "{{bye}}"}}}}}},
+}
+# promise amount must go as a number
+nodes["create_promise"]["pre_actions"][0]["pre_process_code"] = (
+    "try:\n    b = config.get('body')\n    if isinstance(b, dict):\n        b['amount'] = float(vars.get('p_amount'))\n        b['date'] = str(vars.get('p_date'))[:10]\nexcept Exception:\n    pass\n")
+for n in ("create_promise", "schedule_callback", "transfer_to_agent", "get_account", "verify_identity"):
+    nodes[n]["response_mapping"].append({"path": "data.error", "variable": n[:2] + "_err"}) if n != "verify_identity" else None
+# clear stale mapped flags before each call
+for n, keys in (("create_promise", ["pr_ok"]), ("schedule_callback", ["cb_ok"]), ("transfer_to_agent", ["tr_ok"]), ("get_account", ["a_ok"])):
+    nodes[n]["pre_actions"][0]["pre_process_code"] = nodes[n]["pre_actions"][0].get("pre_process_code", "") or ""
+    nodes[n]["pre_actions"][0]["pre_process_code"] = "".join("vars[%r] = 'none'\n" % k for k in keys) + nodes[n]["pre_actions"][0]["pre_process_code"]
+
+close_tool = api_fn("close_call", "close_call", {"customer_id": "{{customer_id}}", "outcome": "{{outcome}}", "reason": "{{reason}}"})
+close_tool["config"] = {"timeoutMs": 12000, "maxRetries": 2, "alwaysRunsAt": ["end_of_call"]}
+close_tool["function"]["parameters"]["properties"]["body"]["required"] = ["customer_id", "outcome"]
+close_tool["pre_process_code"] = snippets.close_pre_process(tuple(SPEC["service_failure_pair"]), "outcome", "reason", "customer_id")
+
+wf = {
+    "initial_node": "init",
+    "system_prompt": "You are the digital assistant of Freya Bank on a phone call. Speak English. Say exactly the text you are given, nothing more.",
+    "nodes": nodes, "global_nodes": {}, "tools": [close_tool],
+    "test_variables": {"customer_id": "c_test", "first_name": "Daniel", "last_name": "Reyes", "title": "Mr", "now": "2026-10-14T11:00"},
+}
+out = ROOT / ("out/%s.workflow.json" % SLOT)
+json.dump(wf, open(out, "w"), indent=1)
+print("wrote", out)

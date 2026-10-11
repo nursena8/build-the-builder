@@ -1,0 +1,1747 @@
+[
+ {
+  "name": "opening",
+  "rules": [
+   1,
+   2
+  ],
+  "run": [
+   "init"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes"
+  },
+  "expect": {
+   "say": {
+    "contains": "Bay Reyes ile mi görüşüyorum"
+   },
+   "st": "confirm_id"
+  }
+ },
+ {
+  "name": "late band deadline + haftaya cuma ok",
+  "rules": [
+   18,
+   19,
+   22,
+   34
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_date_words": "haftaya cuma"
+  },
+  "expect": {
+   "st": "confirm",
+   "c_date": "2026-10-23",
+   "say": {
+    "contains": "Onaylıyor musunuz"
+   }
+  }
+ },
+ {
+  "name": "early deadline across holiday",
+  "rules": [
+   18,
+   23
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "personal_loan",
+   "p0_past_due": 1250,
+   "p0_days_late": 3,
+   "p0_instalment_amount": 400,
+   "x_date_words": "20 Kasım"
+  },
+  "expect": {
+   "o_date": "2026-11-02"
+  }
+ },
+ {
+  "name": "holiday proposes next bd",
+  "rules": [
+   20
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-21T11:00",
+   "st": "pay",
+   "pi": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-21",
+   "p0_product_id": "p1",
+   "p0_type": "car_loan",
+   "p0_past_due": 1250,
+   "p0_days_late": 20,
+   "p0_instalment_amount": 400,
+   "x_date_words": "26 Ekim"
+  },
+  "expect": {
+   "o_date": "2026-10-27"
+  }
+ },
+ {
+  "name": "refusal 1 on Friday -> next week's Friday",
+  "rules": [
+   30
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-16T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-16",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_reply": "no"
+  },
+  "expect": {
+   "o_date": "2026-10-23",
+   "o_amount": 1250.0
+  }
+ },
+ {
+  "name": "callback saturday rejected after window",
+  "rules": [
+   6,
+   7
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-16T18:30",
+   "st": "tp_when",
+   "x_date_words": "yarın",
+   "x_time_words": "saat 11"
+  },
+  "expect": {
+   "cb_bad": 1
+  }
+ },
+ {
+  "name": "callback 18:00 inclusive",
+  "rules": [
+   6
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "tp_when",
+   "x_date_words": "yarın",
+   "x_time_words": "saat 18"
+  },
+  "expect": {
+   "action": "callback",
+   "cb_date": "2026-10-15",
+   "cb_time": "18:00"
+  }
+ },
+ {
+  "name": "no + question starts third party",
+  "rules": [
+   5
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm_id",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "x_reply": "no",
+   "x_question": "what"
+  },
+  "expect": {
+   "st": "tp_when"
+  }
+ },
+ {
+  "name": "plan with date -> restructuring",
+  "rules": [
+   41
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_request": "plan"
+  },
+  "expect": {
+   "action": "transfer",
+   "t_queue": "restructuring"
+  }
+ },
+ {
+  "name": "paid closes",
+  "rules": [
+   39,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_request": "paid",
+   "x_date_words": "geçen cuma"
+  },
+  "expect": {
+   "outcome": "paid",
+   "action": "end"
+  }
+ },
+ {
+  "name": "dob words -> verify",
+  "rules": [
+   11
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "dob",
+   "x_dob_words": "on dört mart bin dokuz yüz seksen beş"
+  },
+  "expect": {
+   "action": "verify",
+   "v_answer": "1985-03-14"
+  }
+ },
+ {
+  "name": "'Alo' is not a confirmation: ask once more",
+  "rules": [
+   3
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm_id",
+   "title": "Mr",
+   "last_name": "Reyes"
+  },
+  "expect": {
+   "id_asks": 1,
+   "st": "confirm_id",
+   "say": {
+    "contains": "Bay Reyes ile mi görüşüyorum"
+   }
+  }
+ },
+ {
+  "name": "still unclear after the second ask -> not_reached/unclear",
+  "rules": [
+   3,
+   46,
+   47
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm_id",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "id_asks": 1
+  },
+  "expect": {
+   "outcome": "not_reached",
+   "reason": "unclear",
+   "action": "end",
+   "say": {
+    "contains": "Teşekkür eder, iyi günler dilerim."
+   }
+  }
+ },
+ {
+  "name": "robot question answered, identity asked again",
+  "rules": [
+   4
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm_id",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "x_question": "robot"
+  },
+  "expect": {
+   "st": "confirm_id",
+   "say": {
+    "contains": "Ben Freya Bank'ın dijital asistanıyım. Bay Reyes ile mi görüşüyorum?"
+   }
+  }
+ },
+ {
+  "name": "wrong number",
+  "rules": [
+   8,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm_id",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "x_who": "wrong_number"
+  },
+  "expect": {
+   "outcome": "not_reached",
+   "reason": "wrong_number",
+   "action": "end"
+  }
+ },
+ {
+  "name": "deceased: condolence and close",
+  "rules": [
+   9,
+   46,
+   47
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm_id",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "x_who": "deceased"
+  },
+  "expect": {
+   "outcome": "not_reached",
+   "reason": "deceased",
+   "say": {
+    "contains": "Başınız sağ olsun. Teşekkür eder"
+   }
+  }
+ },
+ {
+  "name": "relative offers to pay and asks the amount: only a callback time is asked",
+  "rules": [
+   10,
+   5
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "tp_when",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "x_question": "other",
+   "x_request": "paid"
+  },
+  "expect": {
+   "st": "tp_when",
+   "action": "talk",
+   "say": "Bugün veya bir sonraki iş günü, saat 10.00 ile 18.00 arasında hangi saatte ulaşabiliriz?"
+  }
+ },
+ {
+  "name": "refusal at the identity question is asked once more",
+  "rules": [
+   45
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm_id",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "x_request": "refuse_talk"
+  },
+  "expect": {
+   "talk_ref": 1,
+   "st": "confirm_id",
+   "say": {
+    "contains": "Bay Reyes ile mi görüşüyorum"
+   }
+  }
+ },
+ {
+  "name": "second 'do not want to talk' before verification -> not_verified/declined",
+  "rules": [
+   45,
+   15
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "dob",
+   "talk_ref": 1,
+   "x_request": "refuse_talk"
+  },
+  "expect": {
+   "outcome": "not_verified",
+   "reason": "declined"
+  }
+ },
+ {
+  "name": "dob in digits read day.month.year",
+  "rules": [
+   11
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "dob",
+   "x_dob_words": "14.03.1985"
+  },
+  "expect": {
+   "action": "verify",
+   "v_field": "date_of_birth",
+   "v_answer": "1985-03-14"
+  }
+ },
+ {
+  "name": "first wrong answer: ask again",
+  "rules": [
+   12
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "dob",
+   "pending": "verify",
+   "r_ok": "true",
+   "r_status": "200",
+   "r_verified": "false",
+   "r_hint": "none",
+   "v_field": "date_of_birth",
+   "wrong": 0
+  },
+  "expect": {
+   "wrong": 1,
+   "say": {
+    "contains": "Doğum tarihinizi tekrar söyler misiniz"
+   }
+  }
+ },
+ {
+  "name": "third wrong answer in total (on phone) -> not_verified/failed, app or branch",
+  "rules": [
+   12,
+   14,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "phone",
+   "pending": "verify",
+   "r_ok": "true",
+   "r_status": "200",
+   "r_verified": "false",
+   "r_hint": "none",
+   "v_field": "phone_last4",
+   "wrong": 2
+  },
+  "expect": {
+   "outcome": "not_verified",
+   "reason": "failed",
+   "say": {
+    "contains": "mobil uygulamamızı kullanın veya bir şubemize"
+   }
+  }
+ },
+ {
+  "name": "day_month_swapped: ask month in words, not a wrong answer",
+  "rules": [
+   13
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "dob",
+   "pending": "verify",
+   "r_ok": "true",
+   "r_status": "200",
+   "r_verified": "false",
+   "r_hint": "day_month_swapped",
+   "v_field": "date_of_birth",
+   "wrong": 0
+  },
+  "expect": {
+   "wrong": 0,
+   "say": {
+    "contains": "Ayı kelimeyle söyler misiniz"
+   }
+  }
+ },
+ {
+  "name": "first refusal of security question: explain once",
+  "rules": [
+   15
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "dob",
+   "x_request": "refuse"
+  },
+  "expect": {
+   "decl": 1,
+   "say": {
+    "contains": "Bu sorular hesabınızı korumak içindir"
+   }
+  }
+ },
+ {
+  "name": "'what is this about' instead of answer, second time -> declined",
+  "rules": [
+   15
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "phone",
+   "decl": 1,
+   "x_question": "what"
+  },
+  "expect": {
+   "outcome": "not_verified",
+   "reason": "declined"
+  }
+ },
+ {
+  "name": "both questions passed -> get_account",
+  "rules": [
+   16
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "phone",
+   "pending": "verify",
+   "r_ok": "true",
+   "r_status": "200",
+   "r_verified": "true",
+   "r_hint": "none",
+   "v_field": "phone_last4",
+   "wrong": 0
+  },
+  "expect": {
+   "action": "account",
+   "pending": "account"
+  }
+ },
+ {
+  "name": "account: collections reason, card in words, past due, days late, full amount today",
+  "rules": [
+   17,
+   24,
+   28
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "account",
+   "pending": "account",
+   "r_ok": "true",
+   "r_status": "200",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100
+  },
+  "expect": {
+   "st": "pay",
+   "o_amount": 1250.0,
+   "o_date": "2026-10-14",
+   "say": {
+    "contains": "Tahsilat ekibinden, gecikmiş bir ödemeniz nedeniyle arıyorum. 4821 ile biten kredi kartınızda 1.250 TL vadesi geçmiş tutar var ve 10 gündür gecikmiş durumda. Bu ödemeyi bugün yapabilir misiniz?"
+   }
+  }
+ },
+ {
+  "name": "account: personal loan named in words",
+  "rules": [
+   17
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "account",
+   "pending": "account",
+   "r_ok": "true",
+   "r_status": "200",
+   "p0_product_id": "p1",
+   "p0_type": "personal_loan",
+   "p0_past_due": 1250,
+   "p0_days_late": 3,
+   "p0_instalment_amount": 400
+  },
+  "expect": {
+   "say": {
+    "contains": "bireysel kredinizde 1.250 TL vadesi geçmiş tutar var ve 3 gündür"
+   }
+  }
+ },
+ {
+  "name": "account: car loan named in words",
+  "rules": [
+   17
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "account",
+   "pending": "account",
+   "r_ok": "true",
+   "r_status": "200",
+   "p0_product_id": "p1",
+   "p0_type": "car_loan",
+   "p0_past_due": 900,
+   "p0_days_late": 20,
+   "p0_instalment_amount": 300
+  },
+  "expect": {
+   "say": {
+    "contains": "taşıt kredinizde 900 TL"
+   }
+  }
+ },
+ {
+  "name": "vague period: ask the exact day once",
+  "rules": [
+   21
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_date_words": "maaşım yatınca"
+  },
+  "expect": {
+   "vague": 1,
+   "say": {
+    "contains": "tam olarak"
+   }
+  }
+ },
+ {
+  "name": "vague again: propose the deadline (late band 2026-10-23)",
+  "rules": [
+   21,
+   18
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "vague": 1,
+   "x_date_words": "ay sonu"
+  },
+  "expect": {
+   "o_date": "2026-10-23",
+   "o_amount": 1250.0
+  }
+ },
+ {
+  "name": "too high (card): floor = minimum_payment once, rest stays overdue",
+  "rules": [
+   25,
+   26
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_request": "too_high"
+  },
+  "expect": {
+   "o_amount": 100.0,
+   "floor_off": 1,
+   "say": {
+    "contains": "Kalan kısım vadesi geçmiş olarak kalacaktır"
+   }
+  }
+ },
+ {
+  "name": "too high (loan): floor = instalment_amount",
+  "rules": [
+   25,
+   26
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "personal_loan",
+   "p0_past_due": 1250,
+   "p0_days_late": 3,
+   "p0_instalment_amount": 400,
+   "x_request": "too_high"
+  },
+  "expect": {
+   "o_amount": 400.0
+  }
+ },
+ {
+  "name": "floor refused = attempt 1: floor on this week's last business day",
+  "rules": [
+   26,
+   30
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 100,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "too_high": 1,
+   "floor_off": 1,
+   "x_reply": "no"
+  },
+  "expect": {
+   "ref": 1,
+   "o_amount": 100.0,
+   "o_date": "2026-10-16"
+  }
+ },
+ {
+  "name": "amount between floor and full is accepted",
+  "rules": [
+   27
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_amount_words": "500 lira"
+  },
+  "expect": {
+   "st": "confirm",
+   "c_amount": 500.0,
+   "c_date": "2026-10-14"
+  }
+ },
+ {
+  "name": "amount below floor: cannot record, floor offered once",
+  "rules": [
+   27
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_amount_words": "50 lira"
+  },
+  "expect": {
+   "floor_off": 1,
+   "o_amount": 100.0,
+   "say": {
+    "contains": "Bu tutarı kaydedemiyorum. En az 100 TL"
+   }
+  }
+ },
+ {
+  "name": "below floor again after floor offer = firm refusal, attempt 1 full amount Friday",
+  "rules": [
+   27,
+   30
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 100,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "floor_off": 1,
+   "x_amount_words": "50 lira"
+  },
+  "expect": {
+   "ref": 1,
+   "o_amount": 1250.0,
+   "o_date": "2026-10-16"
+  }
+ },
+ {
+  "name": "'no' with a date is a proposal, not a refusal",
+  "rules": [
+   29
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_reply": "no",
+   "x_date_words": "cuma"
+  },
+  "expect": {
+   "ref": 0,
+   "st": "confirm",
+   "c_date": "2026-10-16",
+   "c_amount": 1250.0
+  }
+ },
+ {
+  "name": "late band attempt 2: floor at the deadline",
+  "rules": [
+   30
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 1,
+   "o_amount": 1250,
+   "o_date": "2026-10-16",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_reply": "no"
+  },
+  "expect": {
+   "ref": 2,
+   "o_amount": 100.0,
+   "o_date": "2026-10-23"
+  }
+ },
+ {
+  "name": "early band: one attempt, second no -> no_promise/refused",
+  "rules": [
+   31,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 1,
+   "o_amount": 1250,
+   "o_date": "2026-10-16",
+   "p0_product_id": "p1",
+   "p0_type": "personal_loan",
+   "p0_past_due": 1250,
+   "p0_days_late": 3,
+   "p0_instalment_amount": 400,
+   "x_reply": "no"
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "refused"
+  }
+ },
+ {
+  "name": "late band: two attempts used -> no_promise/refused",
+  "rules": [
+   31
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 2,
+   "o_amount": 100,
+   "o_date": "2026-10-23",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_request": "cant_today"
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "refused"
+  }
+ },
+ {
+  "name": "hardship: sympathy and support offer, no persuasion",
+  "rules": [
+   32
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_request": "hardship"
+  },
+  "expect": {
+   "st": "hardship",
+   "ref": 0,
+   "say": {
+    "contains": "çok üzüldüm"
+   }
+  }
+ },
+ {
+  "name": "hardship accepts support -> transfer queue support",
+  "rules": [
+   32
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "hardship",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_reply": "yes"
+  },
+  "expect": {
+   "action": "transfer",
+   "t_queue": "support",
+   "t_reason": "support"
+  }
+ },
+ {
+  "name": "support transfer done -> transferred/support",
+  "rules": [
+   32,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "hardship",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "pending": "transfer",
+   "r_ok": "true",
+   "t_reason": "support"
+  },
+  "expect": {
+   "outcome": "transferred",
+   "reason": "support"
+  }
+ },
+ {
+  "name": "hardship declines support -> no_promise/hardship",
+  "rules": [
+   32,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "hardship",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_reply": "no"
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "hardship"
+  }
+ },
+ {
+  "name": "hardship but names a date -> promise check",
+  "rules": [
+   32,
+   29
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "hardship",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_date_words": "cuma"
+  },
+  "expect": {
+   "st": "confirm",
+   "c_date": "2026-10-16"
+  }
+ },
+ {
+  "name": "discount request: nothing outside policy",
+  "rules": [
+   33
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_request": "discount"
+  },
+  "expect": {
+   "say": {
+    "contains": "Politikamızda indirim, borç silme ya da farklı bir şart bulunmuyor"
+   }
+  }
+ },
+ {
+  "name": "explicit yes at read-back -> create_promise with read-back values",
+  "rules": [
+   34
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "c_amount": 1250,
+   "c_date": "2026-10-16",
+   "x_reply": "yes"
+  },
+  "expect": {
+   "action": "promise",
+   "product_id": "p1",
+   "amount": 1250,
+   "pdate": "2026-10-16"
+  }
+ },
+ {
+  "name": "date changed at confirm: checked and read back again",
+  "rules": [
+   35
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "c_amount": 1250,
+   "c_date": "2026-10-16",
+   "x_date_words": "20 Ekim"
+  },
+  "expect": {
+   "st": "confirm",
+   "c_date": "2026-10-20",
+   "say": {
+    "contains": "Onaylıyor musunuz"
+   }
+  }
+ },
+ {
+  "name": "date changed at confirm past deadline: deadline offered",
+  "rules": [
+   35,
+   23
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "c_amount": 1250,
+   "c_date": "2026-10-16",
+   "x_date_words": "30 Ekim"
+  },
+  "expect": {
+   "o_date": "2026-10-23",
+   "say": {
+    "contains": "Kaydedebileceğim en geç tarih"
+   }
+  }
+ },
+ {
+  "name": "promise already recorded for product: change via app",
+  "rules": [
+   36
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "c_amount": 1250,
+   "c_date": "2026-10-16",
+   "pdone_0": 1,
+   "x_reply": "yes"
+  },
+  "expect": {
+   "action": "talk",
+   "say": {
+    "contains": "mobil uygulamamızı"
+   }
+  }
+ },
+ {
+  "name": "create_promise fails once: retry",
+  "rules": [
+   37
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "pending": "promise",
+   "r_status": "500",
+   "r_ok": "false",
+   "pfail": 0
+  },
+  "expect": {
+   "action": "promise",
+   "pfail": 1
+  }
+ },
+ {
+  "name": "create_promise fails twice -> no_promise/service_error",
+  "rules": [
+   37,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "pending": "promise",
+   "r_status": "500",
+   "r_ok": "false",
+   "pfail": 1
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "service_error",
+   "say": {
+    "contains": "kaydedemedim"
+   }
+  }
+ },
+ {
+  "name": "promise ok: recorded, SMS sentence, close promise",
+  "rules": [
+   37,
+   38,
+   46,
+   47
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "confirm",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "pending": "promise",
+   "r_status": "200",
+   "r_ok": "true"
+  },
+  "expect": {
+   "outcome": "promise",
+   "reason": "",
+   "say": {
+    "contains": "Ödeme sözünüz kaydedilmiştir. Bu ödeme sözünü doğrulayan bir kısa mesaj alacaksınız. Teşekkür eder"
+   }
+  }
+ },
+ {
+  "name": "dispute -> no_promise/dispute",
+  "rules": [
+   40,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_request": "dispute"
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "dispute"
+  }
+ },
+ {
+  "name": "human request: ask once if we can help",
+  "rules": [
+   42
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_request": "human"
+  },
+  "expect": {
+   "human_asked": 1,
+   "action": "talk",
+   "say": {
+    "contains": "Size yardımcı olabilir miyim"
+   }
+  }
+ },
+ {
+  "name": "human insisted, before verification -> transfer general",
+  "rules": [
+   42,
+   45
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "dob",
+   "human_asked": 1,
+   "x_request": "human"
+  },
+  "expect": {
+   "action": "transfer",
+   "t_queue": "general",
+   "t_reason": "human"
+  }
+ },
+ {
+  "name": "transfer after a recorded promise -> transferred/human",
+  "rules": [
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "promised": 1,
+   "pending": "transfer",
+   "r_ok": "true",
+   "t_reason": "human"
+  },
+  "expect": {
+   "outcome": "transferred",
+   "reason": "human"
+  }
+ },
+ {
+  "name": "scam question answered, call goes on",
+  "rules": [
+   43
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_question": "scam"
+  },
+  "expect": {
+   "st": "pay",
+   "say": {
+    "contains": "müşteri hizmetleri numarasını arayarak doğrulayabilirsiniz"
+   }
+  }
+ },
+ {
+  "name": "unknown question: no information, no invented facts",
+  "rules": [
+   44
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "x_question": "other"
+  },
+  "expect": {
+   "st": "pay",
+   "say": {
+    "contains": "Bu bilgiye sahip değilim."
+   }
+  }
+ },
+ {
+  "name": "unknown question during security questions",
+  "rules": [
+   44
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "dob",
+   "x_question": "other"
+  },
+  "expect": {
+   "say": {
+    "contains": "Bu bilgiye sahip değilim. Doğum tarihinizi"
+   }
+  }
+ },
+ {
+  "name": "second 'do not want to talk' after verification -> no_promise/refused",
+  "rules": [
+   45
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "pay",
+   "pi": 0,
+   "ref": 0,
+   "o_amount": 1250,
+   "o_date": "2026-10-14",
+   "p0_product_id": "p1",
+   "p0_type": "credit_card",
+   "p0_card_last4": "4821",
+   "p0_past_due": 1250,
+   "p0_days_late": 10,
+   "p0_minimum_payment": 100,
+   "talk_ref": 1,
+   "x_request": "refuse_talk"
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "refused"
+  }
+ },
+ {
+  "name": "callback out of window twice -> not_reached/no_callback",
+  "rules": [
+   7,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-16T18:30",
+   "st": "tp_when",
+   "cb_bad": 1,
+   "x_date_words": "yarın",
+   "x_time_words": "saat 11"
+  },
+  "expect": {
+   "outcome": "not_reached",
+   "reason": "no_callback"
+  }
+ },
+ {
+  "name": "callback scheduled -> not_reached/callback",
+  "rules": [
+   6,
+   46
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "tp_when",
+   "pending": "callback",
+   "r_ok": "true",
+   "cb_date": "2026-10-15",
+   "cb_time": "18:00"
+  },
+  "expect": {
+   "outcome": "not_reached",
+   "reason": "callback"
+  }
+ },
+ {
+  "name": "callback after 18:00 rejected (announcement)",
+  "rules": [
+   6
+  ],
+  "run": [
+   "step"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "tp_when",
+   "x_date_words": "yarın",
+   "x_time_words": "saat 18.30"
+  },
+  "expect": {
+   "cb_bad": 1
+  }
+ }
+]

@@ -2,9 +2,10 @@ env.sh
 .freya-agents.json
 .personas.json
 results/
-traces/
+traces/*.jsonl
 out/
 __pycache__/
 .DS_Store
 .venv/
 dev/backup/
+yapay_zeka*.md

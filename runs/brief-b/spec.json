@@ -1,0 +1,39 @@
+{
+ "holidays": ["2026-10-26","2026-11-11","2026-11-26","2026-12-25","2027-01-01"],
+ "holidays_rule": "A7",
+ "bands": [{"min":1,"max":7,"name":"early","deadline_bd":12,"attempts":1},{"min":8,"max":45,"name":"late","deadline_bd":7,"attempts":2}],
+ "bands_rule": "A18, B3, B5",
+ "floor_fields": {"credit_card":"minimum_payment","personal_loan":"instalment_amount","car_loan":"instalment_amount"},
+ "floor_rule": "A25",
+ "cb_start": "10:00", "cb_end": "19:00", "cb_rule": "A6 (both ends included, later than now)",
+ "max_products": 3, "products_rule": "B1",
+ "next_week_mode": "following_week", "next_week_rule": "A22",
+ "opening": "Hello, this is Freya Bank's digital assistant calling from Freya Bank. We are recording this call. Am I speaking with {title} {last_name}?",
+ "opening_rule": "A1, A2 (no quoted sentence given; 'recording' wording)",
+ "say": {
+  "robot": "I am Freya Bank's digital assistant.",
+  "scam": "You can verify this call by phoning Freya Bank's customer service number.",
+  "no_info": "I do not have that information.",
+  "protect": "These security questions protect your account.",
+  "loss": "I am sorry for your loss.",
+  "paid": "Payments can take one business day to appear.",
+  "sms": "You will receive a text message confirming this promise.",
+  "app": "A recorded promise cannot be changed in this call, but you can change it in the mobile app.",
+  "tech": "There was a technical problem. I will try once more.",
+  "help_first": "Before I connect you, can I help you with anything myself?",
+  "sympathy": "I am sorry to hear that.",
+  "support_offer": "Would you like me to connect you with our customer support team?",
+  "goodbye": "Thank you for your time. Goodbye.",
+  "no_discount": "I am not able to offer a discount, a waiver or any other special terms."
+ },
+ "outcomes": {"promise":["promise",""],"paid":["paid",""],"restructuring":["transferred","restructuring"],"human":["transferred","human"],"support":["transferred","support"],
+   "refused":["no_promise","refused"],"hardship":["no_promise","hardship"],"dispute":["no_promise","dispute"],"service_error":["no_promise","service_error"],
+   "failed":["not_verified","failed"],"declined":["not_verified","declined"],"callback":["not_reached","callback"],"no_callback":["not_reached","no_callback"],
+   "wrong_number":["not_reached","wrong_number"],"deceased":["not_reached","deceased"],"unclear":["not_reached","unclear"]},
+ "outcomes_rule": "A46, B closing",
+ "queues": {"restructuring":"restructuring","human":"general","support":"support"},
+ "unclear": [
+  {"what": "service error on verify_identity/get_account: Brief A gives no pair; get_account failing twice -> no_promise/service_error, verify failing twice -> not_verified/failed", "unclear": true},
+  {"what": "hardship declined in Brief B: this product and every remaining product noted hardship, no persuasion", "unclear": true}
+ ]
+}

@@ -5,7 +5,7 @@
 Prints one line per finding ("ERROR ..." or "WARN ...") and a last line "RESULT: PASS" or "RESULT: FAIL".
 Exit code 0 on PASS, 1 on FAIL. Accepts a bare workflow or a freya.export_workflow file ({"workflow": {...}}).
 """
-import json, re, sys, collections
+import json, os, re, sys, collections, urllib.parse
 
 
 def load(path):
@@ -35,6 +35,7 @@ def walk_conditions(c):
 
 
 def openapi_ops(path):
+    if path in (None, "-"): return {}
     o = json.load(open(path))
     base = ((o.get("servers") or [{}])[0].get("url") or "").rstrip("/")
     ops = {}
@@ -73,6 +74,11 @@ def check(wf, ops):
     init = wf.get("initial_node")
     if init not in nodes: err(f"initial_node {init!r} is not a node")
 
+    # a list mapping is fine when some code rebuilds the items from the flattened '<name>.<i>.<field>' variables
+    list_reader = False
+    for _w, _t in tool_defs(wf):
+        _c = ((((_t.get("function") or {}).get("parameters") or {}).get("properties") or {}).get("code") or {}).get("default") or ""
+        if "items_from_vars" in _c or "items_from_keys" in _c or re.search(r"\\\\\.\(\\\\d\+\)\\\\\.", _c) or "(\\d+)\\." in _c: list_reader = True
     for name, n in nodes.items():
         nt = n.get("node_type")
         if nt != "conversation" and n.get("tools"):
@@ -87,7 +93,7 @@ def check(wf, ops):
                 if isinstance(c.get("operand"), bool): err(f"{name}: boolean operand in a condition (write the string \"true\" and \"True\")")
         for rm in n.get("response_mapping") or []:
             hit = resolve_resp(rm.get("path"), n, ops)
-            if hit in ("array", "object"):
+            if hit in ("array", "object") and not list_reader:
                 err(f"{name}: response_mapping {rm.get('path')!r} points at a {hit}; the platform stores only single values, as flattened paths such as 'data.products.0.past_due'. Map each field you need for item 0, 1, 2 ... separately")
         if nt == "conversation" and not n.get("transitions") and not n.get("terminal"):
             warn(f"{name}: conversation node without transitions")
@@ -156,6 +162,41 @@ def check(wf, ops):
         if k in reach and k not in seen: err(f"{k}: no path to an end_call node")
         if k not in reach: warn(f"{k}: unreachable from initial_node")
 
+    # a tool that runs at the end of the call is filled in by the model: free text in `reason` is rejected by the bank
+    # and the call never closes. Its fields must be overwritten from code variables in pre_process_code.
+    for where, t in tool_defs(wf):
+        fn = t.get("function") or {}
+        if not str(fn.get("handler", "")).endswith("api_call") or not (t.get("config") or {}).get("alwaysRunsAt"): continue
+        body = ((((fn.get("parameters") or {}).get("properties") or {}).get("body") or {}).get("properties")) or {}
+        hook = t.get("pre_process_code") or ""
+        loose = [k for k, v in body.items() if "{{" in str(v.get("default")) and not re.search(r"\[['\"]%s['\"]\]" % re.escape(k), hook)]
+        if loose:
+            err(f"{where}: {fn.get('name')} runs at the end of the call but pre_process_code does not set {loose} from code variables; the model writes them itself (free text such as 'customer refused ...' is rejected by the bank and the call never closes). Use snippets.close_pre_process()")
+
+    # every pass through the main loop must be counted so a stuck call closes by itself instead of running to the maximum duration
+    all_code = []
+    for where, t in tool_defs(wf):
+        fn = t.get("function") or {}
+        if fn.get("name") == "code_exec":
+            all_code.append((((fn.get("parameters") or {}).get("properties") or {}).get("code") or {}).get("default") or "")
+    if all_code and not any(re.search(r"vars\[['\"]loops['\"]\]\s*=", c) for c in all_code):
+        warn("no loop guard: no code node counts passes in vars['loops'] and closes past a limit; a refusal or a repeated request can cycle until the maximum duration. Add snippets.loop_guard() to the main step code")
+
+    # a bank tool placed on a conversation node is called by the model, which fills its arguments itself and can leave them out
+    # (seen live: verify_identity called with only customer_id, three calls out of three failed). Bank tools run in api_request nodes
+    # (pre_actions) with every argument taken from a variable that code set; only the closing tool is workflow-level (its hook sets the body).
+    for name, n in nodes.items():
+        for t in n.get("tools") or []:
+            fn = t.get("function") or {}
+            if str(fn.get("handler", "")).endswith("api_call"):
+                err(f"{name}: bank tool {fn.get('name')} is on a conversation node, so the model fills its arguments (seen live: called with no field or answer, every call failed). Put it in an api_request node's pre_actions with each body field as a {{{{variable}}}} that code set")
+
+    # a call that starts on a conversation node with an unconditional transition did not start at all (seen live: the chat route
+    # timed out after 60 s and every simulated call ended with no tool call). Start on a passthrough code node that sets the first sentence.
+    n0 = nodes.get(init) or {}
+    if n0.get("node_type") == "conversation" and any(c.get("operator") == "always" for t in n0.get("transitions") or [] for c in walk_conditions(t.get("condition"))):
+        err(f"initial node {init!r} is a conversation node with an 'always' transition; the call does not start. Make the initial node a passthrough code node (it sets the first sentence) that leads to the talk node")
+
     # tools against the openapi
     names_used = set()
     for where, t in tool_defs(wf):
@@ -163,6 +204,10 @@ def check(wf, ops):
         if not str(fn.get("handler", "")).endswith("api_call"): continue
         props = (fn.get("parameters") or {}).get("properties") or {}
         url = (props.get("url") or {}).get("default")
+        mock = os.environ.get("MOCK_URL", "").strip()
+        if mock and url and urllib.parse.urlparse(str(url)).netloc != urllib.parse.urlparse(mock).netloc:
+            err(f"{where}: {fn.get('name')}: url {url!r} is not on the bank's base URL {mock} (every tool call goes to it)")
+        if not ops: continue
         op = ops.get(url)
         if op is None: err(f"{where}: {fn.get('name')}: url {url!r} is not in the tool API"); continue
         names_used.add(op["name"])
@@ -181,7 +226,9 @@ def check(wf, ops):
 
 def main(argv):
     if len(argv) != 3: print(__doc__); return 2
-    lines = check(load(argv[1]), openapi_ops(argv[2]))
+    ops = openapi_ops(argv[2])
+    lines = check(load(argv[1]), ops)
+    if not ops: lines.append("WARN no tool API file: tool fields and allowed values were not checked against an API")
     for l in lines: print(l)
     bad = any(l.startswith("ERROR") for l in lines)
     print("RESULT: " + ("FAIL" if bad else "PASS"))

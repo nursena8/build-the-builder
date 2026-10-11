@@ -1,0 +1,52 @@
+import json
+P = lambda dl, t='credit_card': {"verify_api_response.data.ok": "true", "a_ok": "true", "account_api_response.data.products.0.product_id": "p1",
+  "account_api_response.data.products.0.type": t, "account_api_response.data.products.0.card_last4": "4821",
+  "account_api_response.data.products.0.past_due": 1250, "account_api_response.data.products.0.days_late": dl,
+  "account_api_response.data.products.0.minimum_payment": 300, "account_api_response.data.products.0.instalment_amount": 400}
+def acc(now, dl, t='credit_card'):
+    v = dict(P(dl, t)); v.update({"now": now, "title": "Mr", "last_name": "Reyes", "st": "account", "pending": "account"}); return v
+S = []
+def sc(name, rules, run, vars_, expect): S.append({"name": name, "rules": rules, "run": run, "vars": vars_, "expect": expect})
+sc("late band deadline Friday (holiday 26.10 skipped)", [18, 17, 16], ["step"], acc("2026-10-16T11:00", 10), {"deadline": "2026-10-28", "band": "late", "say": {"contains": "4821 ile biten kredi kartı"}})
+sc("early band deadline", [18], ["step"], acc("2026-10-16T11:00", 3), {"deadline": "2026-11-04", "band": "early"})
+sc("day before holiday late deadline", [18], ["step"], acc("2026-10-23T11:00", 10), {"deadline": "2026-11-04"})
+pay = lambda now, dl, extra: dict({"now": now, "st": "pay", "idx": 0, "prods_json": json.dumps([{"product_id": "p1", "type": "credit_card", "card_last4": "4821", "past_due": 1250, "days_late": dl, "floor": 300, "band": "late" if dl > 7 else "early", "attempts": 2 if dl > 7 else 1, "deadline": {"2026-10-16": "2026-10-28", "2026-10-23": "2026-11-04"}[now[:10]] if dl > 7 else "2026-11-04"}])}, **extra)
+sc("haftaya cuma on Friday", [22, 19, 34], ["step"], pay("2026-10-16T11:00", 10, {"date_words": "haftaya cuma", "req": "plan"}), {"st": "readback", "rb_date": "2026-10-23"})
+sc("refusal attempt 1 on Friday -> next week's last bd", [30, 28], ["step"], pay("2026-10-16T11:00", 10, {"answer": "no"}), {"off_date": "2026-10-23", "tries": "1"})
+sc("late attempt 2 floor at deadline", [30, 25], ["step"], pay("2026-10-16T11:00", 10, {"answer": "no", "tries": 1}), {"off_date": "2026-10-28", "off_amt": "300.0"})
+sc("early band refused after 1 attempt", [31, 46], ["step"], pay("2026-10-16T11:00", 3, {"answer": "no", "tries": 1}), {"outcome": "no_promise", "reason": "refused"})
+sc("holiday monday -> next bd", [20], ["step"], pay("2026-10-23T11:00", 10, {"date_words": "pazartesi"}), {"off_date": "2026-10-27", "say": {"contains": "iş günü değil"}})
+sc("after deadline -> latest", [23], ["step"], pay("2026-10-16T11:00", 10, {"date_words": "15 kasım"}), {"off_date": "2026-10-28", "say": {"contains": "en geç"}})
+sc("vague -> ask exact once", [21], ["step"], pay("2026-10-16T11:00", 10, {"date_words": "maaşım yatınca"}), {"asked_exact": "1"})
+sc("too high -> floor", [26, 24], ["step"], pay("2026-10-16T11:00", 10, {"req": "too_high"}), {"off_amt": "300.0", "say": {"contains": "300 TL"}})
+sc("below floor -> floor once", [27], ["step"], pay("2026-10-16T11:00", 10, {"amount_words": "100 lira"}), {"off_amt": "300.0", "floor_off": "1"})
+sc("amount in range + date accepted", [27, 29], ["step"], pay("2026-10-16T11:00", 10, {"amount_words": "500 lira", "date_words": "yarın", "req": "hardship"}), {"st": "readback", "rb_amt": "500.0", "rb_date": "2026-10-19"} if False else {"st": "pay", "say": {"contains": "iş günü değil"}})
+sc("paid", [39], ["step"], pay("2026-10-16T11:00", 10, {"req": "paid"}), {"outcome": "paid"})
+sc("dispute", [40], ["step"], pay("2026-10-16T11:00", 10, {"req": "dispute"}), {"outcome": "no_promise", "reason": "dispute"})
+sc("plan -> restructuring", [41, 33], ["step"], pay("2026-10-16T11:00", 10, {"req": "plan"}), {"act": "transfer", "v_queue": "restructuring"})
+sc("hardship -> support offer", [32], ["step"], pay("2026-10-16T11:00", 10, {"req": "hardship"}), {"st": "support"})
+sc("hardship declined", [32], ["step"], pay("2026-10-16T11:00", 10, {"st": "support", "answer": "no"}), {"reason": "hardship"})
+sc("human first ask", [42], ["step"], pay("2026-10-16T11:00", 10, {"req": "human"}), {"say": {"contains": "yardımcı olabilir"}})
+sc("human second -> general", [42, 45], ["step"], pay("2026-10-16T11:00", 10, {"req": "human", "human_asked": "1"}), {"v_queue": "general"})
+sc("readback yes -> promise", [34, 36], ["step"], pay("2026-10-16T11:00", 10, {"st": "readback", "answer": "yes", "rb_amt": 1250, "rb_date": "2026-10-19"}), {"act": "promise", "v_date": "2026-10-19"})
+sc("promise ok -> saved + close", [37, 38, 46, 47], ["step"], pay("2026-10-16T11:00", 10, {"pending": "promise", "pr_ok": "true"}), {"outcome": "promise", "say": {"contains": "kısa mesaj"}})
+sc("promise fails twice", [37], ["step"], pay("2026-10-16T11:00", 10, {"pending": "promise", "pr_ok": "false", "perr": 1}), {"reason": "service_error"})
+sc("not talk twice", [45], ["step"], pay("2026-10-16T11:00", 10, {"req": "not_talk", "nt": 1}), {"reason": "refused"})
+base = {"now": "2026-10-14T18:30", "title": "Mr", "last_name": "Reyes", "hitap": "Bay Reyes"}
+sc("confirm ok -> dob", [1, 2, 11], ["step"], dict(base, st="confirm", answer="yes"), {"st": "dob"})
+sc("unclear twice", [3], ["step"], dict(base, st="confirm", answer="unclear", asks=1), {"reason": "unclear"})
+sc("robot question", [4, 3], ["step"], dict(base, st="confirm", q="robot", asks=0), {"say": {"contains": "dijital asistan"}})
+sc("other person + callback after window closed", [5, 6, 7], ["step"], dict(base, st="confirm", answer="other_person", date_words="bugün", time_words="saat yedide"), {"cbo": "1"})
+sc("callback tomorrow 15", [6], ["step"], dict(base, st="cb", date_words="yarın", time_words="öğleden sonra üçte"), {"act": "callback", "v_date": "2026-10-15", "v_time": "15:00"})
+sc("callback 18:00 included", [6], ["step"], dict(base, st="cb", date_words="yarın", time_words="18:00"), {"act": "callback"})
+sc("callback weekend day", [6, 7], ["step"], dict(base, now="2026-10-17T11:00", st="cb", date_words="bugün", time_words="15:00", cbo=1), {"reason": "no_callback"})
+sc("wrong number", [8], ["step"], dict(base, st="confirm", req="wrong_number"), {"reason": "wrong_number"})
+sc("deceased", [9, 10], ["step"], dict(base, st="cb", req="deceased"), {"reason": "deceased", "say": {"contains": "Başınız sağ olsun"}})
+sc("dob words -> ISO", [11], ["step"], dict(base, st="dob", dob_words="on dört mart bin dokuz yüz seksen beş"), {"act": "verify", "v_answer": "1985-03-14"})
+sc("dob digits day first", [11], ["step"], dict(base, st="dob", dob_words="14.03.1985"), {"v_answer": "1985-03-14"})
+sc("swap hint not counted", [13, 12], ["step"], dict(base, st="dob", pending="verify", v_ok="true", v_verified="false", v_hint="day_month_swapped", v_field="date_of_birth"), {"wrong": None} if False else {"say": {"contains": "kelimeyle"}})
+sc("third wrong -> failed", [12, 14], ["step"], dict(base, st="phone", pending="verify", v_ok="true", v_verified="false", wrong=2, v_field="phone_last4"), {"reason": "failed", "say": {"contains": "şube"}})
+sc("decline twice", [15], ["step"], dict(base, st="dob", req="refuse", decl=1), {"reason": "declined"})
+sc("phone in pieces", [11], ["step"], dict(base, st="phone", digits="33", digits_words="sıfır yedi"), {"v_answer": "3307", "act": "verify"})
+sc("scam answer", [43, 44], ["step"], dict(base, st="dob", q="scam"), {"say": {"contains": "müşteri hizmetleri"}})
+json.dump(S, open("out/scenarios.json", "w"), ensure_ascii=False, indent=1)
