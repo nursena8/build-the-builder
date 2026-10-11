@@ -185,3 +185,19 @@ def hhmm_from_words(text):
     if ap == 'am' and h == 12: h = 0
     if h > 23 or mi > 59: return None
     return '%02d:%02d' % (h, mi)
+
+
+def items_from_vars(vars, fields, prefix='p', max_items=8):
+    """Rebuild a list of records from flattened variables.
+    The platform stores a response list only as single values ('data.products.0.past_due'), so map each field of
+    item i to a variable '<prefix><i>_<field>' (for example p0_past_due) and call this to get [{...}, {...}].
+    Items with no product_id-like first field value are dropped. Numbers stay as the platform gave them."""
+    out = []
+    for i in range(max_items):
+        rec = {}
+        for f in fields:
+            v = vars.get('%s%d_%s' % (prefix, i, f))
+            if v is not None and str(v) != '': rec[f] = v
+        if not rec: break
+        out.append(rec)
+    return out

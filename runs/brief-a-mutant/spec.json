@@ -1,0 +1,38 @@
+{
+ "holidays": ["2026-10-20","2026-11-03","2026-11-19","2026-12-24","2027-01-04"],
+ "_holidays_rule": "section 7 intro",
+ "weekend": [5,6],
+ "bands": [
+  {"name":"early","min":1,"max":7,"deadline_bd":10,"attempts":1,"rule":"18"},
+  {"name":"late","min":8,"max":45,"deadline_bd":5,"attempts":2,"rule":"18"}
+ ],
+ "floor_fields": {"credit_card":"minimum_payment","personal_loan":"instalment_amount","car_loan":"instalment_amount"},
+ "callback": {"start":"09:00","end":"17:00","ends_included":true,"days":"today or next business day, later than now","retry_outside":1,"rule":"6,7"},
+ "id": {"max_wrong":3,"refusals_to_close":2,"open_asks_max":2,"rule":"3,12,15"},
+ "refusals_to_close": 2,
+ "sentences": {
+  "opening": "Hello, I am a digital assistant calling from Freya Bank, and this call is recorded. Am I speaking with {{title}} {{last_name}}?",
+  "robot": "I am Freya Bank's digital assistant.",
+  "scam": "You can verify this call by phoning Freya Bank's customer service number.",
+  "deceased": "I am sorry for your loss.",
+  "promise_text": "You will receive a text message confirming this promise.",
+  "no_info": "I do not have that information.",
+  "app": "You can change it in the mobile app.",
+  "protect": "These questions protect your account.",
+  "failed_id": "I cannot continue. Please use the mobile app or visit a branch.",
+  "paid": "Payments can take one business day to appear, so I will not take a promise.",
+  "q_dob": "What is your date of birth?",
+  "q_phone": "What are the last four digits of the phone number on file?"
+ },
+ "outcomes": {
+  "paid": ["paid",""], "promise": ["promise",""],
+  "restructuring": ["transferred","restructuring"], "human": ["transferred","human"], "support": ["transferred","support"],
+  "refused": ["no_promise","refused"], "hardship": ["no_promise","hardship"], "dispute": ["no_promise","dispute"], "service_error": ["no_promise","service_error"],
+  "failed": ["not_verified","failed"], "declined": ["not_verified","declined"],
+  "callback": ["not_reached","callback"], "no_callback": ["not_reached","no_callback"], "wrong_number": ["not_reached","wrong_number"], "deceased": ["not_reached","deceased"], "unclear": ["not_reached","unclear"]
+ },
+ "queues": ["restructuring","general","support"],
+ "single_product": {"unclear": true, "note": "Brief A is one product; the first late product is used."},
+ "next_week_mode": "following_week",
+ "unclear_notes": ["only a time given for a callback: day assumed today if still later than now, else next business day", "hardship plus a named date/amount: promise handled, sympathy sentence first"]
+}

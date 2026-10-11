@@ -41,8 +41,27 @@ def openapi_ops(path):
     for p, v in (o.get("paths") or {}).items():
         post = v.get("post") or {}
         schema = (((post.get("requestBody") or {}).get("content") or {}).get("application/json") or {}).get("schema") or {}
-        ops[base + p] = {"name": p.strip("/"), "props": schema.get("properties") or {}, "required": schema.get("required") or []}
+        resp = ((((post.get("responses") or {}).get("200") or {}).get("content") or {}).get("application/json") or {}).get("schema") or {}
+        ops[base + p] = {"name": p.strip("/"), "props": schema.get("properties") or {}, "required": schema.get("required") or [], "resp": resp}
     return ops
+
+
+def resolve_resp(path, node, ops):
+    """The OpenAPI type ('array', 'object', 'string' ...) a response_mapping path ends on, or None when unknown."""
+    url = None
+    for a in node.get("pre_actions") or []:
+        fn = a.get("function") or {}
+        url = (((fn.get("parameters") or {}).get("properties") or {}).get("url") or {}).get("default") or url
+    op = ops.get(url)
+    if not op or not path: return None
+    cur = op["resp"]
+    for part in str(path).split(".")[1:] if str(path).startswith("data") else str(path).split("."):
+        if part.isdigit():
+            cur = cur.get("items") or {}
+        else:
+            cur = (cur.get("properties") or {}).get(part)
+            if cur is None: return None
+    return cur.get("type")
 
 
 def check(wf, ops):
@@ -66,6 +85,10 @@ def check(wf, ops):
             if t.get("target_node") not in nodes: err(f"{name}: transition to unknown node {t.get('target_node')!r}")
             for c in walk_conditions(t.get("condition")):
                 if isinstance(c.get("operand"), bool): err(f"{name}: boolean operand in a condition (write the string \"true\" and \"True\")")
+        for rm in n.get("response_mapping") or []:
+            hit = resolve_resp(rm.get("path"), n, ops)
+            if hit in ("array", "object"):
+                err(f"{name}: response_mapping {rm.get('path')!r} points at a {hit}; the platform stores only single values, as flattened paths such as 'data.products.0.past_due'. Map each field you need for item 0, 1, 2 ... separately")
         if nt == "conversation" and not n.get("transitions") and not n.get("terminal"):
             warn(f"{name}: conversation node without transitions")
 
