@@ -323,5 +323,16 @@ class Pruning(unittest.TestCase):
         self.assertIn("def resolve_phrase_tr", snippets.code("pass", {}, prune=False))
 
 
+class NumOf(unittest.TestCase):
+    def test_stray_prefixes(self):
+        for raw, want in [("，8", 8), ("，17", 17), ("?>9", 9), ("9 ", 9), (1990, 1990), ("1990", 1990), ("none", None), ("", None), (None, None), ("3.5", 3.5)]:
+            self.assertEqual(cal.num_of(raw), want, repr(raw))
+        self.assertEqual(cal.num_of("none", 0), 0)
+    def test_survives_pruning(self):
+        v = {}
+        exec(compile(snippets.code("vars['d'] = num_of('，8'); vars['y'] = num_of('?>1991')"), "n", "exec"), {"vars": v})
+        self.assertEqual((v["d"], v["y"]), (8, 1991))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

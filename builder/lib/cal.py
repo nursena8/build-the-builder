@@ -437,3 +437,13 @@ def say_amount_tr(x):
     s = '{:,.2f}'.format(float(x)).replace(',', 'X').replace('.', ',').replace('X', '.')
     if s.endswith(',00'): s = s[:-3]
     return s + ' TL'
+
+
+def num_of(v, default=None):
+    """The first number in an extracted value, whatever stray characters come with it. The extraction model sometimes puts a
+    prefix in front of a numeric field (seen live: '，8', '，17', '?>9'), and int() of that fails. '1.250,50' is not handled here (use amount_tr).
+    num_of('，8') -> 8; num_of('9 ') -> 9; num_of('1990') -> 1990; num_of('none') -> default."""
+    m = re.search(r'\d+(?:\.\d+)?', str(v if v is not None else ''))
+    if not m: return default
+    x = float(m.group(0))
+    return int(x) if x == int(x) else x

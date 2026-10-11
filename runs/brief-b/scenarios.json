@@ -1,109 +1,1703 @@
 [
  {
-  "name": "late band deadline 7 bd, early 12 bd over holiday",
+  "name": "opening sentence",
   "rules": [
-   "A16",
-   "A17",
-   "A18",
-   "B1",
-   "B2",
-   "B3"
+   1,
+   2
   ],
   "run": [
-   "step"
+   "init"
   ],
   "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "account",
-   "pending": "account",
-   "account_response.data.ok": "true",
-   "account_response.data.products.0.product_id": "p1",
-   "account_response.data.products.0.type": "credit_card",
-   "account_response.data.products.0.card_last4": "4821",
-   "account_response.data.products.0.past_due": "300",
-   "account_response.data.products.0.days_late": "14",
-   "account_response.data.products.0.minimum_payment": "50",
-   "account_response.data.products.1.product_id": "p2",
-   "account_response.data.products.1.type": "personal_loan",
-   "account_response.data.products.1.past_due": "200",
-   "account_response.data.products.1.days_late": "3",
-   "account_response.data.products.1.instalment_amount": "100"
-  },
-  "expect": {
-   "prods_json": {
-    "contains": "2026-10-23"
-   },
-   "say": {
-    "contains": "credit card ending 4821"
-   },
-   "st": "today"
-  }
- },
- {
-  "name": "early deadline skips 26 Oct holiday",
-  "rules": [
-   "A18",
-   "A25",
-   "B3"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "account",
-   "pending": "account",
-   "account_response.data.ok": "true",
-   "account_response.data.products.0.product_id": "p1",
-   "account_response.data.products.0.type": "credit_card",
-   "account_response.data.products.0.card_last4": "4821",
-   "account_response.data.products.0.past_due": "300",
-   "account_response.data.products.0.days_late": "14",
-   "account_response.data.products.0.minimum_payment": "50",
-   "account_response.data.products.1.product_id": "p2",
-   "account_response.data.products.1.type": "personal_loan",
-   "account_response.data.products.1.past_due": "200",
-   "account_response.data.products.1.days_late": "3",
-   "account_response.data.products.1.instalment_amount": "100"
-  },
-  "expect": {
-   "prods_json": {
-    "contains": "\"deadline\": \"2026-11-02\", \"floor\": 100.0"
-   }
-  }
- },
- {
-  "name": "not me plus question starts third party",
-  "rules": [
-   "A5",
-   "A10"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "confirm",
-   "asks": 1,
-   "intent": "not_me",
-   "side_q": "other_question",
    "title": "Mr",
    "last_name": "Reyes"
   },
   "expect": {
-   "st": "third",
+   "say": "Hello, I am a digital assistant calling from Freya Bank. We are recording this call. Am I speaking with Mr Reyes?"
+  }
+ },
+ {
+  "name": "account 2 products: bands and deadlines, state each",
+  "rules": [
+   "B1",
+   "B2",
+   "B3",
+   16,
+   17,
+   18,
+   28,
+   "B4"
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "id_phone",
+   "pending": "account",
+   "r_ok": "True",
+   "api_account_response.data.products.0.product_id": "p1",
+   "api_account_response.data.products.0.type": "credit_card",
+   "api_account_response.data.products.0.card_last4": "4821",
+   "api_account_response.data.products.0.past_due": 500,
+   "api_account_response.data.products.0.days_late": 14,
+   "api_account_response.data.products.0.minimum_payment": 50,
+   "api_account_response.data.products.1.product_id": "p2",
+   "api_account_response.data.products.1.type": "personal_loan",
+   "api_account_response.data.products.1.past_due": 300,
+   "api_account_response.data.products.1.days_late": 3,
+   "api_account_response.data.products.1.instalment_amount": 120
+  },
+  "expect": {
+   "st": "today",
    "say": {
-    "contains": "be reached"
+    "contains": "credit card ending 4821 has a past-due amount of 500.00 and is 14 days late. Your personal loan has a past-due amount of 300.00 and is 3 days late. Can you make these payments today?"
+   },
+   "P_json": {
+    "contains": "\"deadline\": \"2026-11-02\""
    }
+  }
+ },
+ {
+  "name": "late deadline 7bd from Wed",
+  "rules": [
+   18
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "id_phone",
+   "pending": "account",
+   "r_ok": "True",
+   "api_account_response.data.products.0.product_id": "p1",
+   "api_account_response.data.products.0.type": "credit_card",
+   "api_account_response.data.products.0.card_last4": "4821",
+   "api_account_response.data.products.0.past_due": 500,
+   "api_account_response.data.products.0.days_late": 14,
+   "api_account_response.data.products.0.minimum_payment": 50
+  },
+  "expect": {
+   "P_json": {
+    "contains": "\"deadline\": \"2026-10-23\""
+   },
+   "say": {
+    "contains": "Can you make this payment today?"
+   }
+  }
+ },
+ {
+  "name": "late deadline from Friday 16 Oct (holiday 26th skipped)",
+  "rules": [
+   18
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-16T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "id_phone",
+   "pending": "account",
+   "r_ok": "True",
+   "api_account_response.data.products.0.product_id": "p1",
+   "api_account_response.data.products.0.type": "credit_card",
+   "api_account_response.data.products.0.card_last4": "4821",
+   "api_account_response.data.products.0.past_due": 500,
+   "api_account_response.data.products.0.days_late": 14,
+   "api_account_response.data.products.0.minimum_payment": 50
+  },
+  "expect": {
+   "P_json": {
+    "contains": "\"deadline\": \"2026-10-28\""
+   }
+  }
+ },
+ {
+  "name": "account fail retries once",
+  "rules": [
+   37
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "id_phone",
+   "pending": "account",
+   "r_ok": "pending"
+  },
+  "expect": {
+   "act": "account",
+   "fails_account": 1
+  }
+ },
+ {
+  "name": "account fail twice closes service error",
+  "rules": [
+   37
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "id_phone",
+   "pending": "account",
+   "r_ok": "pending",
+   "fails_account": 1
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "service_error",
+   "act": "end"
+  }
+ },
+ {
+  "name": "no today -> attempt 1 on Friday for first product",
+  "rules": [
+   "B4",
+   30,
+   28
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "no",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "st": "prod",
+   "say": {
+    "contains": "credit card ending 4821: could you pay 500.00 on Friday 16 October"
+   }
+  }
+ },
+ {
+  "name": "no today on Friday -> attempt1 next week Friday",
+  "rules": [
+   30
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-16T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-28\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "no",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "Friday 23 October"
+   }
+  }
+ },
+ {
+  "name": "day before holiday: Fri 23 Oct is last bd -> next week last bd Fri 30",
+  "rules": [
+   30
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-23T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-11-03\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "no",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "Friday 30 October"
+   }
+  }
+ },
+ {
+  "name": "refuse attempt1 late -> floor on deadline",
+  "rules": [
+   30,
+   "B5"
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 500, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "refuse",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "could you pay 50.00 on Friday 23 October"
+   }
+  }
+ },
+ {
+  "name": "refuse attempt2 late -> next product attempt 1",
+  "rules": [
+   31,
+   "B4",
+   "B5"
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 2, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-23\", \"offer_amount\": 50, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "refuse",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "idx": 1,
+   "say": {
+    "contains": "personal loan: could you pay 300.00 on Friday 16 October"
+   },
+   "P_json": {
+    "contains": "\"note\": \"refused\""
+   }
+  }
+ },
+ {
+  "name": "early band refuse attempt 1 -> refused, notes",
+  "rules": [
+   31,
+   "B8"
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 300, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "no",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "act": "note",
+   "v_note": "refused",
+   "v_product_id": "p2"
+  }
+ },
+ {
+  "name": "one date for all after one deadline: capped",
+  "rules": [
+   "B6",
+   "B7",
+   34
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "cant_today",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "the 28th",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "all"
+  },
+  "expect": {
+   "st": "readback",
+   "say": {
+    "contains": "your credit card ending 4821: 500.00 on Friday 23 October 2026 (this is the latest date I can record for this product); your personal loan: 300.00 on Wednesday 28 October 2026. Do you confirm?"
+   }
+  }
+ },
+ {
+  "name": "plan label with future date -> promise check not transfer",
+  "rules": [
+   29,
+   "B6"
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "cant_today",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "next Friday",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "st": "readback",
+   "say": {
+    "contains": "Friday 23 October"
+   }
+  }
+ },
+ {
+  "name": "next friday said on friday = following week",
+  "rules": [
+   22
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-16T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-04\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "cant_today",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "next Friday",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "Friday 23 October"
+   }
+  }
+ },
+ {
+  "name": "weekend date -> offer next business day",
+  "rules": [
+   20
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 300, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "Saturday",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "Monday 19 October"
+   }
+  }
+ },
+ {
+  "name": "holiday 26 Oct -> offer 27",
+  "rules": [
+   20
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 300, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "October 26",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "Tuesday 27 October"
+   }
+  }
+ },
+ {
+  "name": "after deadline -> offer deadline",
+  "rules": [
+   23,
+   19
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 500, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "the 30th",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "latest date I can record is Friday 23 October"
+   }
+  }
+ },
+ {
+  "name": "vague -> ask exact day",
+  "rules": [
+   21
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 500, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "next week",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": "Which exact day could you pay on?"
+  }
+ },
+ {
+  "name": "vague twice -> propose deadline",
+  "rules": [
+   21
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 1, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 500, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "when my salary comes",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "Friday 23 October"
+   }
+  }
+ },
+ {
+  "name": "too much -> floor once",
+  "rules": [
+   26,
+   25
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 500, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "too_much",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "I can record 50.00 for your credit card ending 4821 on Friday 16 October 2026. The rest stays overdue."
+   }
+  }
+ },
+ {
+  "name": "amount between floor and full accepted",
+  "rules": [
+   27
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 500, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "Friday",
+   "time_words": "none",
+   "amount": "200",
+   "product_ref": "none"
+  },
+  "expect": {
+   "st": "readback",
+   "say": {
+    "contains": "200.00 on Friday 16 October"
+   }
+  }
+ },
+ {
+  "name": "amount below floor -> offer floor",
+  "rules": [
+   27,
+   24
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 500, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "20",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "cannot record an amount below 50.00"
+   }
+  }
+ },
+ {
+  "name": "loan floor = instalment",
+  "rules": [
+   25
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "id_phone",
+   "pending": "account",
+   "r_ok": "True",
+   "api_account_response.data.products.0.product_id": "p3",
+   "api_account_response.data.products.0.type": "car_loan",
+   "api_account_response.data.products.0.past_due": 900,
+   "api_account_response.data.products.0.days_late": 30,
+   "api_account_response.data.products.0.instalment_amount": 450
+  },
+  "expect": {
+   "P_json": {
+    "contains": "\"floor\": 450.0"
+   }
+  }
+ },
+ {
+  "name": "confirm -> create_promise per product",
+  "rules": [
+   "B7",
+   34
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "readback",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"agreed\", \"date\": \"2026-10-16\", \"amount\": 500, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"agreed\", \"date\": \"2026-10-20\", \"amount\": 300, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "yes",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "act": "promise",
+   "v_product_id": "p1",
+   "v_date": "2026-10-16",
+   "v_amount": "500"
+  }
+ },
+ {
+  "name": "promise ok -> next promise",
+  "rules": [
+   "B7",
+   37
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "record",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"agreed\", \"date\": \"2026-10-16\", \"amount\": 500, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"agreed\", \"date\": \"2026-10-20\", \"amount\": 300, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "pending": "promise",
+   "r_ok": "True",
+   "cur_pid": "p1"
+  },
+  "expect": {
+   "act": "promise",
+   "v_product_id": "p2"
+  }
+ },
+ {
+  "name": "promise fail once -> retry",
+  "rules": [
+   37
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "record",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"agreed\", \"date\": \"2026-10-16\", \"amount\": 500, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "pending": "promise",
+   "r_ok": "pending",
+   "cur_pid": "p1"
+  },
+  "expect": {
+   "act": "promise",
+   "fails_promise": 1
+  }
+ },
+ {
+  "name": "promise fail twice, other recorded -> note service_error",
+  "rules": [
+   "B11",
+   37
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "record",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"recorded\", \"date\": \"2026-10-16\", \"amount\": 500, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"agreed\", \"date\": \"2026-10-20\", \"amount\": 300, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "pending": "promise",
+   "r_ok": "pending",
+   "cur_pid": "p2",
+   "fails_promise": 1
+  },
+  "expect": {
+   "act": "note",
+   "v_note": "service_error",
+   "v_product_id": "p2"
+  }
+ },
+ {
+  "name": "after notes: promise outcome + sms",
+  "rules": [
+   38,
+   46,
+   47,
+   "B8"
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "notes",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"recorded\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"service_error\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"service_error\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "pending": "note",
+   "r_ok": "True",
+   "cur_pid": "p2"
+  },
+  "expect": {
+   "outcome": "promise",
+   "say": {
+    "contains": "You will receive a text message confirming this promise."
+   }
+  }
+ },
+ {
+  "name": "single product promise fails twice -> no_promise service_error",
+  "rules": [
+   37
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "notes",
+   "P_json": "[{\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"service_error\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"service_error\", \"note_done\": 1}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "pending": "note",
+   "r_ok": "True",
+   "cur_pid": "p2"
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "service_error"
+  }
+ },
+ {
+  "name": "paid one product, continue other",
+  "rules": [
+   "B9",
+   39
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "paid",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "credit_card"
+  },
+  "expect": {
+   "say": {
+    "contains": "Payments can take one business day to appear."
+   },
+   "idx": 1,
+   "P_json": {
+    "contains": "\"note\": \"paid\""
+   }
+  }
+ },
+ {
+  "name": "all paid -> paid",
+  "rules": [
+   39,
+   "B8"
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "notes",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"paid\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"paid\", \"note_done\": 1}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"paid\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"paid\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "pending": "note",
+   "r_ok": "True",
+   "cur_pid": "p2"
+  },
+  "expect": {
+   "outcome": "paid",
+   "reason": ""
+  }
+ },
+ {
+  "name": "dispute + refused -> no_promise reason of first non-paid",
+  "rules": [
+   40,
+   "B8"
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "notes",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"paid\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"paid\", \"note_done\": 1}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"dispute\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"dispute\", \"note_done\": 1}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "pending": "note",
+   "r_ok": "True",
+   "cur_pid": "p2"
+  },
+  "expect": {
+   "outcome": "no_promise",
+   "reason": "dispute"
+  }
+ },
+ {
+  "name": "restructuring transfers, no notes",
+  "rules": [
+   "B10",
+   41
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "plan",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "act": "transfer",
+   "v_queue": "restructuring"
+  }
+ },
+ {
+  "name": "transfer ok -> transferred restructuring",
+  "rules": [
+   "B10",
+   46
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"recorded\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "pending": "transfer",
+   "r_ok": "True",
+   "transfer_key": "restructuring"
+  },
+  "expect": {
+   "outcome": "transferred",
+   "reason": "restructuring"
+  }
+ },
+ {
+  "name": "human first ask",
+  "rules": [
+   42
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "human",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "can I help you with this myself"
+   }
+  }
+ },
+ {
+  "name": "human second -> general",
+  "rules": [
+   42
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "human",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "human_asked": 1
+  },
+  "expect": {
+   "v_queue": "general",
+   "act": "transfer"
+  }
+ },
+ {
+  "name": "hardship -> sympathy + support offer",
+  "rules": [
+   32
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "hardship",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "st": "support_offer",
+   "say": {
+    "contains": "I am sorry to hear that."
+   }
+  }
+ },
+ {
+  "name": "hardship accept -> support",
+  "rules": [
+   32
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "support_offer",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "yes",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "support_offered": 1
+  },
+  "expect": {
+   "v_queue": "support"
+  }
+ },
+ {
+  "name": "hardship decline -> note hardship",
+  "rules": [
+   32
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "support_offer",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "no",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "support_offered": 1
+  },
+  "expect": {
+   "act": "note",
+   "v_note": "hardship"
+  }
+ },
+ {
+  "name": "discount refused",
+  "rules": [
+   33
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "discount",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "cannot offer a discount"
+   }
+  }
+ },
+ {
+  "name": "scam answer",
+  "rules": [
+   43
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "today",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "scam",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
+   "say": {
+    "contains": "customer service number"
+   }
+  }
+ },
+ {
+  "name": "robot answer in confirm",
+  "rules": [
+   4,
+   3
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "st": "confirm",
+   "intent": "robot"
+  },
+  "expect": {
+   "say": {
+    "contains": "Freya Bank's digital assistant. Am I speaking with Mr Reyes?"
+   }
+  }
+ },
+ {
+  "name": "unclear twice -> not_reached unclear",
+  "rules": [
+   3
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "st": "confirm",
+   "intent": "unclear",
+   "confirm_asks": 2
+  },
+  "expect": {
+   "outcome": "not_reached",
+   "reason": "unclear"
+  }
+ },
+ {
+  "name": "refuse talk twice verified -> refused",
+  "rules": [
+   45
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "prod",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "refuse_talk",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none",
+   "talk_refusals": 1
+  },
+  "expect": {
+   "act": "note",
+   "v_note": "refused"
+  }
+ },
+ {
+  "name": "refuse talk twice before verify -> declined",
+  "rules": [
+   45
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "id_dob",
+   "intent": "refuse_talk",
+   "talk_refusals": 1
+  },
+  "expect": {
+   "outcome": "not_verified",
+   "reason": "declined"
+  }
+ },
+ {
+  "name": "relative answers -> ask when reachable",
+  "rules": [
+   5,
+   10
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Ms",
+   "last_name": "Reyes",
+   "st": "confirm",
+   "intent": "not_me"
+  },
+  "expect": {
+   "say": "When can Ms Reyes be reached?"
+  }
+ },
+ {
+  "name": "callback tomorrow 11 -> schedule",
+  "rules": [
+   6
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "third",
+   "intent": "other",
+   "when_words": "tomorrow",
+   "time_words": "eleven in the morning"
+  },
+  "expect": {
+   "act": "callback",
+   "v_cb_date": "2026-10-15",
+   "v_cb_time": "11:00"
+  }
+ },
+ {
+  "name": "callback 19:00 included",
+  "rules": [
+   6
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "third",
+   "when_words": "today",
+   "time_words": "19:00"
+  },
+  "expect": {
+   "act": "callback",
+   "v_cb_time": "19:00"
+  }
+ },
+ {
+  "name": "callback 19:30 outside -> ask once",
+  "rules": [
+   7
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "third",
+   "when_words": "today",
+   "time_words": "7:30 pm"
+  },
+  "expect": {
+   "cb_out": 1,
+   "act": "talk"
+  }
+ },
+ {
+  "name": "callback outside twice -> no_callback",
+  "rules": [
+   7
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "third",
+   "when_words": "next Monday",
+   "time_words": "11 am",
+   "cb_out": 1
+  },
+  "expect": {
+   "outcome": "not_reached",
+   "reason": "no_callback"
+  }
+ },
+ {
+  "name": "callback after window closed today 19:30 now -> next bd friday ok",
+  "rules": [
+   6
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-15T19:30",
+   "st": "third",
+   "when_words": "tomorrow",
+   "time_words": "10 am"
+  },
+  "expect": {
+   "act": "callback",
+   "v_cb_date": "2026-10-16"
+  }
+ },
+ {
+  "name": "callback Saturday now -> monday",
+  "rules": [
+   6
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-17T12:00",
+   "st": "third",
+   "when_words": "Monday",
+   "time_words": "10:00"
+  },
+  "expect": {
+   "act": "callback",
+   "v_cb_date": "2026-10-19"
+  }
+ },
+ {
+  "name": "callback ok -> close callback",
+  "rules": [
+   6
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "third",
+   "pending": "callback",
+   "r_ok": "True"
+  },
+  "expect": {
+   "outcome": "not_reached",
+   "reason": "callback"
   }
  },
  {
   "name": "wrong number",
   "rules": [
-   "A8"
+   8
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
@@ -118,1232 +1712,420 @@
  {
   "name": "deceased",
   "rules": [
-   "A9"
+   9
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
-   "st": "confirm",
+   "st": "third",
    "intent": "deceased"
   },
   "expect": {
    "reason": "deceased",
-   "bye": {
-    "contains": "sorry for your loss"
+   "say": {
+    "contains": "I am sorry for your loss."
    }
   }
  },
  {
-  "name": "unclear twice",
+  "name": "dob in pieces -> ask year",
   "rules": [
-   "A3"
+   11
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
-   "st": "confirm",
-   "asks": 2,
-   "intent": "unclear"
-  },
-  "expect": {
-   "reason": "unclear"
-  }
- },
- {
-  "name": "callback 19:00 included",
-  "rules": [
-   "A6"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-16T11:00",
-   "st": "third",
-   "intent": "other",
-   "date_words": "today",
-   "time_words": "7 pm"
-  },
-  "expect": {
-   "act": "callback",
-   "cb_time": "19:00",
-   "cb_date": "2026-10-16"
-  }
- },
- {
-  "name": "callback after window closed",
-  "rules": [
-   "A7"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-23T19:30",
-   "st": "third",
-   "intent": "other",
-   "date_words": "today",
-   "time_words": "8 pm",
-   "cb_out": 1
-  },
-  "expect": {
-   "reason": "no_callback"
-  }
- },
- {
-  "name": "dob full date",
-  "rules": [
-   "A11"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "dob",
-   "intent": "other",
-   "answer_words": "5 March 1989"
-  },
-  "expect": {
-   "v_answer": "1989-03-05",
-   "act": "verify"
-  }
- },
- {
-  "name": "dob partial asks year",
-  "rules": [
-   "A11"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "dob",
-   "intent": "other",
-   "answer_words": "the fifth of March"
+   "st": "id_dob",
+   "dob_day": "3",
+   "dob_month": "6",
+   "dob_year": "none"
   },
   "expect": {
    "say": {
-    "contains": "year"
+    "contains": "And the year?"
    }
   }
  },
  {
-  "name": "decline twice before verify",
+  "name": "dob complete -> verify ISO",
   "rules": [
-   "A15",
-   "A45"
+   11
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
-   "st": "dob",
-   "intent": "not_talk",
-   "decl": 1
+   "st": "id_dob",
+   "dob_parts": "{\"day\": 3, \"month\": 6}",
+   "dob_year": "1987"
+  },
+  "expect": {
+   "act": "verify",
+   "v_answer": "1987-06-03",
+   "v_field": "date_of_birth"
+  }
+ },
+ {
+  "name": "bad year ignored",
+  "rules": [
+   11
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "id_dob",
+   "dob_day": "3",
+   "dob_month": "6",
+   "dob_year": "1807"
+  },
+  "expect": {
+   "act": "talk"
+  }
+ },
+ {
+  "name": "swapped hint not counted",
+  "rules": [
+   13
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "id_dob",
+   "pending": "verify",
+   "r_ok": "True",
+   "r_hint": "day_month_swapped",
+   "r_verified": "False"
+  },
+  "expect": {
+   "say": {
+    "contains": "month of your date of birth as a word"
+   },
+   "act": "talk"
+  }
+ },
+ {
+  "name": "dob ok -> phone",
+  "rules": [
+   11
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "id_dob",
+   "pending": "verify",
+   "r_ok": "True",
+   "r_verified": "True",
+   "r_all": "False"
+  },
+  "expect": {
+   "st": "id_phone"
+  }
+ },
+ {
+  "name": "third wrong -> failed",
+  "rules": [
+   12,
+   14
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "id_phone",
+   "pending": "verify",
+   "r_ok": "True",
+   "r_verified": "False",
+   "wrong": 2
+  },
+  "expect": {
+   "outcome": "not_verified",
+   "reason": "failed",
+   "say": {
+    "contains": "mobile app or visit a branch"
+   }
+  }
+ },
+ {
+  "name": "all verified -> get_account",
+  "rules": [
+   16
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "id_phone",
+   "pending": "verify",
+   "r_ok": "True",
+   "r_verified": "True",
+   "r_all": "True"
+  },
+  "expect": {
+   "act": "account"
+  }
+ },
+ {
+  "name": "what about during id -> protect once",
+  "rules": [
+   15
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "id_dob",
+   "intent": "what_about",
+   "q": "Q?"
+  },
+  "expect": {
+   "say": {
+    "contains": "These questions protect your account."
+   }
+  }
+ },
+ {
+  "name": "id refuse twice -> declined",
+  "rules": [
+   15
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "st": "id_dob",
+   "intent": "refuse_id",
+   "id_refusals": 1
   },
   "expect": {
    "reason": "declined"
   }
  },
  {
-  "name": "human twice transfers",
+  "name": "phone digits merged",
   "rules": [
-   "A42"
+   11
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
-   "st": "dob",
-   "intent": "human",
-   "human_asked": "yes"
+   "st": "id_phone",
+   "digits": "21",
+   "digits_so_far": "48"
   },
   "expect": {
-   "act": "transfer",
-   "queue": "general"
+   "v_answer": "4821",
+   "act": "verify"
   }
  },
  {
-  "name": "plan request transfers restructuring",
+  "name": "change recorded promise -> app",
   "rules": [
-   "A41",
-   "B10"
+   36
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
-   "st": "today",
-   "intent": "plan",
-   "prods_json": "[]"
-  },
-  "expect": {
-   "queue": "restructuring"
-  }
- },
- {
-  "name": "robot question answered, then second ask",
-  "rules": [
-   "A4",
-   "A3"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "confirm",
-   "asks": 1,
-   "intent": "unclear",
-   "side_q": "robot",
    "title": "Mr",
-   "last_name": "Reyes"
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "readback",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"agreed\", \"date\": \"2026-10-16\", \"amount\": 500, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "change_promise",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
   },
   "expect": {
    "say": {
-    "contains": "I am Freya Bank's digital assistant. Am I speaking with Mr Reyes?"
-   },
-   "asks": 2,
-   "st": "confirm"
+    "contains": "mobile app"
+   }
   }
  },
  {
-  "name": "no to all today: first product, attempt 1, full amount on this Friday",
+  "name": "readback change date applied",
   "rules": [
-   "B4",
-   "A24",
-   "A30"
+   35
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
-   "st": "today",
-   "intent": "no",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 0}, {\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"open\", \"attempt\": 0}]"
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
+   "st": "readback",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"agreed\", \"date\": \"2026-10-16\", \"amount\": 500, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "none",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "Tuesday the 20th",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "credit_card"
   },
   "expect": {
+   "say": {
+    "contains": "500.00 on Tuesday 20 October"
+   }
+  }
+ },
+ {
+  "name": "question not answerable",
+  "rules": [
+   44
+  ],
+  "run": [
+   "brain"
+  ],
+  "vars": {
+   "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
    "st": "prod",
-   "cur": 0,
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "question",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
    "say": {
-    "contains": "credit card ending 4821, could you pay 300 euros on Friday 16 October 2026?"
-   },
-   "prods_json": {
-    "contains": "\"attempt\": 1"
+    "contains": "do not have that information"
    }
   }
  },
  {
-  "name": "one product: debt stated, asks to pay today",
+  "name": "yes today -> all today readback",
   "rules": [
-   "A16",
-   "A17",
-   "A25",
-   "A28"
+   28,
+   19
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
-   "st": "account",
-   "pending": "account",
-   "account_response.data.ok": "true",
-   "account_response.data.products.0.product_id": "c1",
-   "account_response.data.products.0.type": "car_loan",
-   "account_response.data.products.0.past_due": "400",
-   "account_response.data.products.0.days_late": "10",
-   "account_response.data.products.0.instalment_amount": "150"
-  },
-  "expect": {
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
    "st": "today",
+   "P_json": "[{\"id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 500, \"days_late\": 14, \"floor\": 50, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}, {\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 0, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"\", \"offer_amount\": 0.0, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "yes",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "none",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
+  },
+  "expect": {
    "say": {
-    "contains": "Your car loan has 400 euros past due and is 10 days late. Can you make this payment today?"
-   },
-   "prods_json": {
-    "contains": "\"floor\": 150.0"
+    "contains": "500.00 on Wednesday 14 October 2026; your personal loan: 300.00 on Wednesday 14 October 2026"
    }
   }
  },
  {
-  "name": "second wrong answer (on the phone question) asks again",
+  "name": "unreadable dob -> ask again, not counted",
   "rules": [
-   "A12"
+   11
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
-   "st": "phone",
+   "st": "id_dob",
    "pending": "verify",
-   "wrong": 1,
-   "verify_response.data.ok": "true",
-   "verify_response.data.verified": "false",
-   "verify_response.data.wrong_answers_left": "1"
+   "r_ok": "False",
+   "r_error": "invalid date"
   },
   "expect": {
-   "wrong": 2,
-   "st": "phone",
-   "say": {
-    "contains": "last four digits"
-   }
-  }
- },
- {
-  "name": "third wrong answer: no debt, app or branch, not_verified/failed",
-  "rules": [
-   "A12",
-   "A14",
-   "A46"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "phone",
-   "pending": "verify",
-   "wrong": 2,
-   "verify_response.data.ok": "true",
-   "verify_response.data.verified": "false",
-   "verify_response.data.wrong_answers_left": "0"
-  },
-  "expect": {
-   "outcome": "not_verified",
-   "reason": "failed",
-   "act": "end",
-   "bye": {
-    "contains": "mobile app or visit a branch"
-   }
-  }
- },
- {
-  "name": "day/month swapped hint: ask month as a word, not counted",
-  "rules": [
-   "A13"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "dob",
-   "pending": "verify",
-   "wrong": 0,
-   "verify_response.data.ok": "true",
-   "verify_response.data.verified": "false",
-   "verify_response.data.hint": "day_month_swapped",
-   "verify_response.data.wrong_answers_left": "3"
-  },
-  "expect": {
-   "wrong": 0,
-   "st": "dob",
+   "act": "talk",
    "say": {
     "contains": "month as a word"
    }
   }
  },
  {
-  "name": "Saturday named: offer Monday 19 Oct",
+  "name": "robot question with a date: both handled",
   "rules": [
-   "A19",
-   "A20"
+   4,
+   29
   ],
   "run": [
-   "step"
+   "brain"
   ],
   "vars": {
    "now": "2026-10-14T11:00",
+   "title": "Mr",
+   "last_name": "Reyes",
+   "customer_id": "c1",
    "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "date_words": "Saturday",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
+   "P_json": "[{\"id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 300, \"days_late\": 3, \"floor\": 120, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"used\": 1, \"floor_offered\": 0, \"too_much\": 0, \"vague\": 0, \"dl_offered\": 0, \"status\": \"open\", \"date\": \"\", \"amount\": 0.0, \"offer_date\": \"2026-10-16\", \"offer_amount\": 300, \"note\": \"\", \"note_done\": 0}]",
+   "verified": "yes",
+   "idx": 0,
+   "q": "Q?",
+   "intent": "robot",
+   "dob_day": "none",
+   "dob_month": "none",
+   "dob_year": "none",
+   "digits": "none",
+   "when_words": "Tuesday",
+   "time_words": "none",
+   "amount": "none",
+   "product_ref": "none"
   },
   "expect": {
    "say": {
-    "contains": "not a business day. Could you pay on Monday 19 October 2026"
-   },
-   "prods_json": {
-    "contains": "\"off_date\": \"2026-10-19\""
+    "contains": "I am Freya Bank's digital assistant. Let me read back: your personal loan: 300.00 on Tuesday 20 October 2026"
    }
-  }
- },
- {
-  "name": "holiday Monday 26 Oct named on Fri 23 Oct: offer Tuesday 27",
-  "rules": [
-   "A20",
-   "A19"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-23T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "date_words": "Monday",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-11-04\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "Tuesday 27 October 2026"
-   }
-  }
- },
- {
-  "name": "weekend date for all at today stage: next business day, said in read-back",
-  "rules": [
-   "A20",
-   "B6",
-   "A34"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "today",
-   "intent": "no",
-   "date_words": "Saturday",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 0}]"
-  },
-  "expect": {
-   "st": "readback",
-   "say": {
-    "contains": "300 euros on Monday 19 October 2026 (the next business day after the day you named). Do you confirm?"
-   }
-  }
- },
- {
-  "name": "past date refused",
-  "rules": [
-   "A19"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "date_words": "2026-10-12",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "That date has passed"
-   }
-  }
- },
- {
-  "name": "vague period in product stage: ask once for the exact day",
-  "rules": [
-   "A21"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "date_words": "next week",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "Which exact day"
-   },
-   "prods_json": {
-    "contains": "\"vague_asked\": true"
-   }
-  }
- },
- {
-  "name": "vague again in product stage: propose the deadline",
-  "rules": [
-   "A21"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "date_words": "when my salary comes",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1, \"vague_asked\": true}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "latest date I can record is Friday 23 October 2026"
-   }
-  }
- },
- {
-  "name": "vague again at today stage: each product offered its own deadline",
-  "rules": [
-   "A21",
-   "B3",
-   "B4"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "today",
-   "intent": "no",
-   "vague_asked": "yes",
-   "date_words": "end of the month",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 0}, {\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"open\", \"attempt\": 0}]"
-  },
-  "expect": {
-   "st": "prod",
-   "cur": 0,
-   "say": {
-    "contains": "credit card ending 4821, the latest date I can record is Friday 23 October 2026. Could you pay 300 euros by then?"
-   }
-  }
- },
- {
-  "name": "next Friday said on a Friday is the following week",
-  "rules": [
-   "A22",
-   "A19",
-   "A34"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-16T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "date_words": "next Friday",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-28\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
-  },
-  "expect": {
-   "st": "readback",
-   "say": {
-    "contains": "your credit card ending 4821: 300 euros on Friday 23 October 2026. Do you confirm?"
-   }
-  }
- },
- {
-  "name": "attempt 1 on a Friday: last business day of next week",
-  "rules": [
-   "A30",
-   "A28"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-16T11:00",
-   "st": "today",
-   "intent": "no",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-28\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 0}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "300 euros on Friday 23 October 2026"
-   }
-  }
- },
- {
-  "name": "date after deadline: offer the deadline",
-  "rules": [
-   "A23"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "date_words": "November 5",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "latest date I can record is Friday 23 October 2026"
-   },
-   "prods_json": {
-    "contains": "\"dl_offered\": true"
-   }
-  }
- },
- {
-  "name": "deadline refused = refusal: late band attempt 2, floor on deadline",
-  "rules": [
-   "A23",
-   "A26",
-   "A30",
-   "B5"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "no",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-23\", \"off_amt\": 300.0, \"dl_offered\": true}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "could you pay 50 euros on Friday 23 October 2026? The rest stays overdue."
-   },
-   "prods_json": {
-    "contains": "\"attempt\": 2"
-   }
-  }
- },
- {
-  "name": "too much: floor offered once, rest stays overdue",
-  "rules": [
-   "A26"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "too_much",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-16\", \"off_amt\": 300.0}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "Could you pay 50 euros on Friday 16 October 2026? The rest stays overdue."
-   },
-   "prods_json": {
-    "contains": "\"floor_offered\": true"
-   }
-  }
- },
- {
-  "name": "amount between floor and full with a no: accepted, not a refusal",
-  "rules": [
-   "A27",
-   "A29",
-   "A34"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "no",
-   "amount_words": "two hundred",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-16\", \"off_amt\": 300.0}]"
-  },
-  "expect": {
-   "st": "readback",
-   "say": {
-    "contains": "200 euros on Friday 16 October 2026. Do you confirm?"
-   }
-  }
- },
- {
-  "name": "amount equal to the floor accepted",
-  "rules": [
-   "A27"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "amount_words": "50",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-16\", \"off_amt\": 300.0}]"
-  },
-  "expect": {
-   "st": "readback",
-   "say": {
-    "contains": "50 euros on Friday 16 October 2026"
-   }
-  }
- },
- {
-  "name": "amount below floor: cannot be recorded, floor offered",
-  "rules": [
-   "A27"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "amount_words": "20",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-16\", \"off_amt\": 300.0}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "cannot be recorded. The lowest amount I can record is 50 euros"
-   }
-  }
- },
- {
-  "name": "early band: one refusal uses its only attempt, add_note refused",
-  "rules": [
-   "A31",
-   "B5",
-   "B8"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "no",
-   "prods_json": "[{\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-16\", \"off_amt\": 200.0}]"
-  },
-  "expect": {
-   "act": "note",
-   "n_pid": "p2",
-   "n_reason": "refused"
-  }
- },
- {
-  "name": "after the refused note: no_promise/refused, goodbye",
-  "rules": [
-   "A31",
-   "A46",
-   "A47",
-   "B8"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "recording",
-   "pending": "note",
-   "cur": 0,
-   "note_response.data.ok": "true",
-   "prods_json": "[{\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"done\", \"attempt\": 1, \"reason\": \"refused\"}]"
-  },
-  "expect": {
-   "outcome": "no_promise",
-   "reason": "refused",
-   "act": "end",
-   "bye": {
-    "contains": "Thank you for your time. Goodbye."
-   }
-  }
- },
- {
-  "name": "hardship: one sympathy sentence, support offered, no persuasion",
-  "rules": [
-   "A32"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "hardship",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "I am sorry to hear that. Would you like me to connect you with our customer support team?"
-   },
-   "support_offered": "yes",
-   "prods_json": {
-    "contains": "\"attempt\": 1"
-   }
-  }
- },
- {
-  "name": "hardship: support accepted, transfer support, transferred/support",
-  "rules": [
-   "A32",
-   "A46",
-   "B10"
-  ],
-  "run": [
-   "step",
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "yes",
-   "support_offered": "yes",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
-  },
-  "expect": {
-   "queue": "support",
-   "transfer_done": "yes",
-   "outcome": "transferred",
-   "reason": "support"
-  }
- },
- {
-  "name": "hardship: support declined, note hardship",
-  "rules": [
-   "A32",
-   "B8"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "no",
-   "support_offered": "yes",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}]"
-  },
-  "expect": {
-   "act": "note",
-   "n_reason": "hardship"
-  }
- },
- {
-  "name": "discount request: no special terms, not a refusal",
-  "rules": [
-   "A33"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "discount",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-16\", \"off_amt\": 300.0}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "not able to offer a discount"
-   },
-   "prods_json": {
-    "contains": "\"attempt\": 1"
-   }
-  }
- },
- {
-  "name": "read-back yes: create_promise per product, first one",
-  "rules": [
-   "A34",
-   "B7"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "readback",
-   "intent": "yes",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"agreed\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}, {\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"agreed\", \"attempt\": 0, \"amt\": 200.0, \"date\": \"2026-10-23\"}]"
-  },
-  "expect": {
-   "act": "promise",
-   "c_pid": "p1",
-   "c_amt": 300.0,
-   "c_date": "2026-10-16",
-   "prods_json": {
-    "contains": "\"state\": \"confirmed\""
-   }
-  }
- },
- {
-  "name": "read-back: new date checked and read back again",
-  "rules": [
-   "A35",
-   "A20"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "readback",
-   "intent": "no",
-   "date_words": "Saturday",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"agreed\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}]"
-  },
-  "expect": {
-   "st": "readback",
-   "say": {
-    "contains": "300 euros on Monday 19 October 2026"
-   }
-  }
- },
- {
-  "name": "read-back: new amount checked and read back again",
-  "rules": [
-   "A35",
-   "A27"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "readback",
-   "intent": "other",
-   "amount_words": "100",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"agreed\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}]"
-  },
-  "expect": {
-   "st": "readback",
-   "say": {
-    "contains": "100 euros on Friday 16 October 2026. Do you confirm?"
-   }
-  }
- },
- {
-  "name": "read-back: amount below floor refused, old amount read back",
-  "rules": [
-   "A35",
-   "A27"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "readback",
-   "intent": "other",
-   "amount_words": "10",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"agreed\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "That amount cannot be recorded"
-   },
-   "prods_json": {
-    "contains": "\"amt\": 300.0"
-   }
-  }
- },
- {
-  "name": "change a recorded promise: mobile app, no attempt used",
-  "rules": [
-   "A36"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 1,
-   "intent": "change_recorded",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"recorded\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}, {\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-16\", \"off_amt\": 200.0}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "change it in the mobile app"
-   },
-   "prods_json": {
-    "contains": "\"attempt\": 1"
-   }
-  }
- },
- {
-  "name": "create_promise fails once: retry",
-  "rules": [
-   "A37"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "recording",
-   "pending": "promise",
-   "cur": 0,
-   "p_fail": 0,
-   "promise_response.data.ok": "false",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"confirmed\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}]"
-  },
-  "expect": {
-   "act": "promise",
-   "p_fail": 1
-  }
- },
- {
-  "name": "create_promise fails twice: note service_error",
-  "rules": [
-   "A37",
-   "B11"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "recording",
-   "pending": "promise",
-   "cur": 0,
-   "p_fail": 1,
-   "promise_response.data.ok": "false",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"confirmed\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}]"
-  },
-  "expect": {
-   "act": "note",
-   "n_pid": "p1",
-   "n_reason": "service_error",
-   "pre": {
-    "contains": "could not record"
-   }
-  }
- },
- {
-  "name": "one promise failed, other recorded: close promise",
-  "rules": [
-   "A37",
-   "B11",
-   "A46"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "recording",
-   "pending": "note",
-   "cur": 1,
-   "note_response.data.ok": "true",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"recorded\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}, {\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"done\", \"attempt\": 0, \"reason\": \"service_error\"}]"
-  },
-  "expect": {
-   "outcome": "promise",
-   "reason": ""
-  }
- },
- {
-  "name": "only promise failed twice: no_promise/service_error",
-  "rules": [
-   "A37",
-   "A46"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "recording",
-   "pending": "note",
-   "cur": 0,
-   "note_response.data.ok": "true",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"done\", \"attempt\": 0, \"reason\": \"service_error\"}]"
-  },
-  "expect": {
-   "outcome": "no_promise",
-   "reason": "service_error"
-  }
- },
- {
-  "name": "promise recorded: SMS sentence, close promise",
-  "rules": [
-   "A37",
-   "A38",
-   "A46",
-   "A47"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "recording",
-   "pending": "promise",
-   "cur": 0,
-   "promise_response.data.ok": "true",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"confirmed\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}]"
-  },
-  "expect": {
-   "outcome": "promise",
-   "bye": {
-    "contains": "is recorded. You will receive a text message confirming this promise. Thank you for your time. Goodbye."
-   }
-  }
- },
- {
-  "name": "already paid: one business day sentence, note paid, close paid",
-  "rules": [
-   "A39",
-   "B8"
-  ],
-  "run": [
-   "step",
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "today",
-   "intent": "paid",
-   "note_response.data.ok": "true",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 0}]"
-  },
-  "expect": {
-   "n_reason": "paid",
-   "outcome": "paid",
-   "reason": "",
-   "bye": {
-    "contains": "Payments can take one business day to appear."
-   }
-  }
- },
- {
-  "name": "dispute on one product: noted later, call goes on to the next",
-  "rules": [
-   "A40",
-   "B9"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "dispute",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1}, {\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"open\", \"attempt\": 0}]"
-  },
-  "expect": {
-   "st": "prod",
-   "cur": 1,
-   "say": {
-    "contains": "personal loan, could you pay 200 euros on Friday 16 October 2026"
-   },
-   "prods_json": {
-    "contains": "\"reason\": \"dispute\""
-   }
-  }
- },
- {
-  "name": "dispute on the only product: no_promise/dispute",
-  "rules": [
-   "A40",
-   "B8",
-   "A46"
-  ],
-  "run": [
-   "step",
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "today",
-   "intent": "dispute",
-   "note_response.data.ok": "true",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 0}]"
-  },
-  "expect": {
-   "n_reason": "dispute",
-   "outcome": "no_promise",
-   "reason": "dispute"
-  }
- },
- {
-  "name": "scam question during identity: answered, question asked again",
-  "rules": [
-   "A43"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "dob",
-   "intent": "other",
-   "side_q": "scam"
-  },
-  "expect": {
-   "say": {
-    "contains": "verify this call by phoning Freya Bank's customer service number. What is your date of birth?"
-   }
-  }
- },
- {
-  "name": "question the tools cannot answer: no information, offer repeated",
-  "rules": [
-   "A44"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "prod",
-   "cur": 0,
-   "intent": "other",
-   "side_q": "other_question",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"open\", \"attempt\": 1, \"off_date\": \"2026-10-16\", \"off_amt\": 300.0}]"
-  },
-  "expect": {
-   "say": {
-    "contains": "I do not have that information. Could you pay 300 euros on Friday 16 October 2026?"
-   },
-   "prods_json": {
-    "contains": "\"attempt\": 1"
-   }
-  }
- },
- {
-  "name": "transfer after a recorded promise: transferred, agreed one not recorded",
-  "rules": [
-   "A46",
-   "B10"
-  ],
-  "run": [
-   "step"
-  ],
-  "vars": {
-   "now": "2026-10-14T11:00",
-   "st": "recording",
-   "pending": "transfer",
-   "transfer": "restructuring",
-   "prods_json": "[{\"product_id\": \"p1\", \"type\": \"credit_card\", \"card_last4\": \"4821\", \"past_due\": 300.0, \"days_late\": 14, \"band\": \"late\", \"attempts\": 2, \"deadline\": \"2026-10-23\", \"floor\": 50.0, \"state\": \"recorded\", \"attempt\": 0, \"amt\": 300.0, \"date\": \"2026-10-16\"}, {\"product_id\": \"p2\", \"type\": \"personal_loan\", \"card_last4\": \"\", \"past_due\": 200.0, \"days_late\": 3, \"band\": \"early\", \"attempts\": 1, \"deadline\": \"2026-11-02\", \"floor\": 100.0, \"state\": \"agreed\", \"attempt\": 0, \"amt\": 200.0, \"date\": \"2026-10-16\"}]"
-  },
-  "expect": {
-   "outcome": "transferred",
-   "reason": "restructuring",
-   "act": "end"
   }
  }
 ]
