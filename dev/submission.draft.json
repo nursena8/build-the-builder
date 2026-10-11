@@ -1,32 +1,15 @@
 {
- "_note": "Two forms seen on the hackathon page; use the one the Submit tab shows at 20:00. Both run with the same build.py.",
- "form_two_briefs": {
-  "team": "<TEAM>",
-  "repo": "<GITHUB URL>",
-  "commit": "<HASH>",
-  "run_command": "python3 builder/build.py {brief_path} {tool_api_path}",
-  "workflows": {
-   "hidden-1": "submission/hidden-1.workflow.json",
-   "hidden-2": "submission/hidden-2.workflow.json"
-  },
-  "traces": {
-   "hidden-1": "traces/hidden-1.log",
-   "hidden-2": "traces/hidden-2.log"
+ "team": "<TEAM NAME>",
+ "members": [
+  {
+   "name": "<NAME>",
+   "email": "<EMAIL>"
   }
- },
- "form_case_folder": {
-  "team": "<TEAM>",
-  "members": [
-   {
-    "name": "<NAME>",
-    "email": "<EMAIL>"
-   }
-  ],
-  "repo": "<GITHUB URL>",
-  "commit": "<HASH>",
-  "run_command": "python3 builder/build.py {case_folder} {mock_url}",
-  "workflow": "submission/<case>.workflow.json",
-  "trace": "traces/<case>.log",
-  "mock_url": "<https://...workers.dev>"
- }
+ ],
+ "repo": "https://github.com/nursena8/build-the-builder",
+ "commit": "<COMMIT HASH of the run>",
+ "run_command": "python3 builder/build.py {case_folder} {mock_url}",
+ "workflow": "submission/<case>.workflow.json",
+ "trace": "traces/<case>.log",
+ "mock_url": "https://<name>.<subdomain>.workers.dev"
 }

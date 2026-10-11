@@ -97,10 +97,9 @@ def prepare_workdir(case, api, mock_url=None):
         shutil.copy(case, work / "inputs" / case.name)
         # a brief may build on another brief ("Every rule of Brief A applies"): the other briefs in the same folder go in as related files
         text = case.read_text(encoding="utf-8", errors="ignore").lower()
-        cue = bool(re.search(r"(builds? (?:up)?on|every rule of|all rules of|rules of|same as|as in|extends?|applies? unless)[^.\n]{0,50}\b(brief|case|specification|policy)\b", text))
-        def mentioned(p):   # only a brief that names another brief ("Brief A", "hidden-1") or says it builds on one gets siblings as related files
+        def mentioned(p):   # only a brief that names another brief ("Brief A", "hidden-1") gets that one as a related file
             stem = p.stem.lower()
-            return cue or any(x in text for x in {stem, stem.replace("-", " "), stem.replace("-", "_")})
+            return any(x in text for x in {stem, stem.replace("-", " "), stem.replace("-", "_")})
         rel = [p for p in sorted(case.parent.glob("*.md")) if p.resolve() != case.resolve() and p.stat().st_size < 60000 and mentioned(p)][:4]
         WORK_RELATED[0] = bool(rel)
         if rel:

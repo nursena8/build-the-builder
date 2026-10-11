@@ -1,24 +1,28 @@
-# 20:00-23:00 playbook (Istanbul). Deadline 23:00; email submission.json by 22:00.
+# 20:00-23:00 playbook (Istanbul). Final closes 23:00 (20:00 UTC); email submission.json by 22:30.
 
-The page shows two forms (checked 2026-10-11): (a) `python3 builder/build.py briefs/hidden-1.md briefs/hidden-1.openapi.json` with two workflows and two traces (hidden-1, hidden-2); (b) a Turkish case folder + mock URL: `python3 builder/build.py {case_folder} {mock_url}`. build.py runs both. Use whatever the Submit tab says at 20:00.
+Page (Submit tab, seen 2026-10-11): ONE case, "Card statement debt", in Turkish. Steps: (1) download the zip at 20:00, read BRIEF.md first, README.md says what each
+document is; (2) WRITE OUR MOCK of the bank's services on Cloudflare Workers from the service contract and the test customers, deploy it BEFORE running the builder, keep it
+running until results are out; (3) run `python3 builder/build.py <case_folder> <mock_url> 2>&1 | tee traces/<case>.log`, may run more than once, submit ONE run's agent + trace,
+do not edit it after the run; (4) export with freya.export_workflow, commit the file with the trace; (5) email submission.json (team, members, repo, commit, run_command,
+workflow, trace, mock_url) before 20:00 UTC. The trace is read, not scored. After the case opens: fix bugs only, never write case content into the builder.
 
-## Before 20:00 (done by the user)
-- Everything committed and pushed; `git status` clean; remember the commit hash. Builder code frozen from here.
-- `source .venv/bin/activate && source env.sh` in the terminal you will use. `pip install -r builder/requirements.txt` done.
-- Cloudflare account + `wrangler login` ready IF the mock has to be deployed by us (ask support / read the Submit tab).
-- Support answers: does the zip contain an OpenAPI file or only a service contract? Is the mock ours to deploy?
+## Before 20:00 (done)
+- Repo https://github.com/nursena8/build-the-builder is public; builder code committed and pushed.
+- Mock template in mock/ (worker.mjs, config.mjs, customers.mjs, wrangler.toml); `node mock/test_mock.mjs` = ALL PASS.
+- Cloudflare login: `npx wrangler login` (user).
 
-## At 20:00
-1. Download the zip, unzip to a folder OUTSIDE the repo or into an ignored path (do not commit the case files).
-2. Deploy / get the mock; note `mock_url`. Check it answers (curl its root or a tool path once).
-3. From the clean tree at the pushed commit:
-   `python3 builder/build.py <case_folder> <mock_url> 2>&1 | tee traces/<case>.log`
-4. Read the trace (also: the number of `codecheck PASS` lines; a build with fewer than ~30 scenarios was rushed: rerun): every input file `converted`/`text` (or `pdf`), no `converted failed`, `validate RESULT: PASS`, `codecheck RESULT: PASS`, no `remaining_error`, `saved_agent` and `exported` lines present.
-5. Run the Turkish check on the new agent (simulation with Turkish customers; the test customers from the zip must be in your mock):
-   `python3 tools/run_cases.py <agent_id> --brief A --lang tr` only fits the practice cases; for the final case use the zip's test customers.
-6. If the run is bad (crash, FAIL, empty spec): a crash in docconv/build.py may be fixed (README allows parser fixes, no case content), commit, rerun. Each run is a fresh sample; about three fit. Stop at the first good run (earlier submission and shorter build time break ties).
-7. Fill `dev/submission.draft.json` -> `submission.json` (team, members, repo, commit, run_command, workflow, trace, mock_url). Commit the export and trace; the builder code must be identical to the run's commit. Email by 22:00.
+## 20:00 - 20:40 mock
+1. Unzip OUTSIDE the repo (do not commit case files). Read BRIEF.md, README.md, the service contract and the test customers.
+2. Edit mock/config.mjs (identity fields, outcome/reason table, queues, note reasons) and mock/customers.mjs (test customers) from the documents; adjust worker.mjs routes/fields if the
+   contract differs (paths, field names, error texts). `node mock/test_mock.mjs` adapted until ALL PASS.
+3. `cd mock && npx wrangler deploy` -> mock_url. curl it once per tool.
+## 20:40 - 22:15 builder runs
+4. From a clean tree at the pushed commit: `python3 builder/build.py <case_folder> <mock_url> 2>&1 | tee traces/<case>.log`.
+5. Read the trace: all inputs converted, `rulecheck_final PASS`, `chat_probe ok`, validate PASS, >=30 `codecheck PASS`, no `remaining_error`. If not, rerun (builds vary).
+6. Talk to the agent against the mock: the test customers via simulation (personas in Turkish) if time allows; check the mock's ledger for the outcome.
+7. Stop at the first good run. Export is in submission/<case>.workflow.json; commit it with the trace (builder code unchanged), push.
+## 22:15 - 22:30
+8. Fill submission.json (commit hash = the commit with the export and trace, builder code identical to the run's), email it. Keep the mock deployed.
 
 ## Never
-- Do not write anything from the final case into builder code, skill, or lib.
-- Do not edit the exported agent by hand after the run.
+- Do not write anything from the final case into builder code, skill or lib. Do not edit the exported agent by hand after the run.

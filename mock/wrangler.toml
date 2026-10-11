@@ -1,0 +1,11 @@
+name = "bank-mock-nursena"
+main = "worker.mjs"
+compatibility_date = "2025-01-01"
+
+[[durable_objects.bindings]]
+name = "BANK"
+class_name = "Bank"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Bank"]
